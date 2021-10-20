@@ -6,13 +6,96 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
+    <ImageView
+        android:id="@+id/image_title_background"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:scaleType="centerCrop"
+        android:scaleY="1.40"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ripped_paper" />
+
+    <TextView
+        android:id="@+id/text_home_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/caveat_brush"
+        android:letterSpacing="0.04"
+        android:shadowColor="@color/white"
+        android:shadowRadius="2"
+        android:text="@string/lowercase_app_name"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="130sp"
+        app:layout_constraintBottom_toBottomOf="@+id/image_title_background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/image_title_background"
+        app:layout_constraintTop_toTopOf="@+id/image_title_background" />
+
+    <LinearLayout
+        android:layout_width="409dp"
+        android:layout_height="400dp"
+        android:gravity="fill"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_weight="1"
+            >
+
+            <Spinner
+                android:id="@+id/select_home_event"
+                android:layout_width="300dp"
+                android:layout_height="50dp"
+                android:spinnerMode="dropdown" />
+
+            <Button
+                android:id="@+id/button_home_add_event"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="+" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/button_home_camera"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/home_camera"
+            android:textAllCaps="false"
+            android:textColor="@color/secondary"
+            android:layout_weight="1"
+            />
+
+        <Button
+            android:id="@+id/button_home_library"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/home_library"
+            android:textAllCaps="false"
+            android:textColor="@color/secondary"
+            android:layout_weight="1"
+            />
+
+        <Button
+            android:id="@+id/button_home_settings"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/home_settings"
+            android:textAllCaps="false"
+            android:textColor="@color/secondary"
+            android:layout_weight="1"
+            />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

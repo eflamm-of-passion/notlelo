@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Notlelo</string>
+    <string name="lowercase_app_name">notlelo</string>
+    <string name="home_camera">Prendre en photo</string>
+    <string name="home_library">Mes numéros de lot</string>
+    <string name="home_settings">Paramètres</string>
 </resources>
