@@ -1,14 +1,11 @@
 package io.eflamm.notlelo
 
 import android.Manifest
-import android.app.Activity
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.util.Size
-import android.view.View
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -18,12 +15,20 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_camera.*
-import java.io.File
+import java.io.*
 import java.lang.Exception
+import java.nio.file.Files
+import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import android.content.Intent
+
+
+
 
 // source : https://developer.android.com/codelabs/camerax-getting-started#0
 
@@ -44,6 +49,8 @@ class CameraActivity : AppCompatActivity() {
          }
 
         camera_capture_button.setOnClickListener { takePhoto() }
+        camera_zip_button.setOnClickListener { zipAll("", "") }
+        // TODO give the file architecture
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
@@ -67,8 +74,14 @@ class CameraActivity : AppCompatActivity() {
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
+        val appFolder = resources.getString(R.string.app_name)
+        val dayFolder = "2021-12-2"
+        val mealFolder = "dinner"
+        val productFolder = "chocolate"
+        val folders = "$appFolder/$dayFolder/$mealFolder/$productFolder"
+        val photoOutputDirectory = createPhotoFolder(folders)
         val photoFile = File(
-            outputDirectory,
+            photoOutputDirectory,
             SimpleDateFormat(FILENAME_FORMAT, Locale.FRANCE).format(System.currentTimeMillis()) + ".jpg"
         )
 
@@ -88,6 +101,89 @@ class CameraActivity : AppCompatActivity() {
                 }
             }
         )
+    }
+
+    private fun createPhotoFolder(folders: String): File {
+        val mediaDir = externalMediaDirs.firstOrNull()?.let {
+            File(it, folders).apply { mkdirs() }
+        }
+        return if (mediaDir != null && mediaDir.exists()) mediaDir else filesDir
+    }
+
+    fun zipBack(directory: String, zipFile: String) {
+        val inputFolder = resources.getString(R.string.app_name) + "/2021-12-2"
+        val outputFilePath = resources.getString(R.string.app_name) + "/2021-12-2.zip"
+        val outputFile = createPhotoFolder(outputFilePath)
+
+
+//        val sourceFile = File(directory)
+        val file = File(inputFolder)
+
+            ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { output ->
+                    if(file.length() > 1) {
+                        FileInputStream(file).use { input ->
+                            BufferedInputStream(input).use { origin ->
+                                val entry = ZipEntry(outputFilePath)
+                                output.putNextEntry(entry)
+                                origin.copyTo(output, 1024)
+                            }
+                        }
+                    }
+            }
+    }
+
+    fun zipAll(inputFilePath: String, outputFilePath: String) {
+        // everything will happen in filesDir
+        val inputFilePath = resources.getString(R.string.app_name) + "/test.jpg"
+        val filePath1 = "test1.txt"
+        val filePath2 = "test2.txt"
+        val zipFilePath = "test.zip"
+        val file1 = File(filesDir, filePath1)
+        val file2 = File(filesDir, filePath2)
+        val zipFile = File(filesDir, zipFilePath)
+
+
+
+        file1.appendText("hello world")
+        file2.appendText("foo bar")
+
+        val zipOut = ZipOutputStream(FileOutputStream(zipFile.absolutePath))
+        val fis = FileInputStream(file1)
+        var origin = BufferedInputStream(fis)
+        zipOut.putNextEntry(ZipEntry(file1.name))
+        val bytes = ByteArray(1024)
+        origin.buffered(1024).reader().forEachLine {
+            zipOut.write(bytes)
+        }
+        origin.close()
+        zipOut.close()
+
+//        val inputAsString = FileInputStream(file1).bufferedReader().use {
+//            Toast.makeText(applicationContext, it.readText(), Toast.LENGTH_LONG).show()
+//        }
+
+
+
+        val filesName = filesDir.listFiles().map { it.name }
+//        Toast.makeText(applicationContext, filesName.toString(), Toast.LENGTH_LONG).show()
+        Toast.makeText(applicationContext, zipFile.totalSpace.toString(), Toast.LENGTH_LONG).show()
+        // the files is
+
+        shareFile(zipFile)
+    }
+
+    private fun shareFile(fileToShare: File) {
+        val intentShareFile = Intent(Intent.ACTION_SEND)
+        if(fileToShare.exists()) {
+            intentShareFile.type = "application/zip";
+            intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(fileToShare));
+
+            intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
+                "Sharing File...");
+            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+
+            startActivity(Intent.createChooser(intentShareFile, "Share File"));
+        }
     }
 
     private fun startCamera() {
@@ -116,6 +212,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun getOutputDirectory(): File {
+
         val mediaDir = externalMediaDirs.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
