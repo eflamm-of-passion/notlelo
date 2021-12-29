@@ -23,12 +23,12 @@ object StorageUtils {
     // read and write files
 
     fun getTextFromStorage(rootDestination: File, context: Context, folderName: String, fileName: String): String? {
-        val file =  createOrGetFile(rootDestination, folderName, fileName, );
+        val file =  createOrGetFile(rootDestination, folderName, fileName );
         return readFile(context, file);
     }
 
-    fun setTextInStorage(rootDestination: File, context: Context, folderName: String, fileName: String, text: String): File {
-        val file = createOrGetFile(rootDestination, folderName, fileName )
+    fun setTextInStorage(rootDestination: File, context: Context, folderName: String, subFolderName: String, fileName: String, text: String): File {
+        val file = createOrGetFileInsideSubFolder(rootDestination, folderName, subFolderName, fileName )
         return writeFile(context, file, text)
     }
 
@@ -41,6 +41,14 @@ object StorageUtils {
         val folder = File(destination, folderName)
         folder.mkdirs()
         return File(folder, fileName)
+    }
+
+    fun createOrGetFileInsideSubFolder(destination: File, folderName: String, subFolderName: String, fileName: String): File {
+        val folder = File(destination, folderName)
+        folder.mkdirs()
+        val subFolder = File(folder, subFolderName)
+        subFolder.mkdirs()
+        return File(subFolder, fileName)
     }
 
     fun zipFile(rootDestination: File, context: Context, folderName: String, fileName: String, fileToZip1: File): File {
@@ -57,19 +65,21 @@ object StorageUtils {
         return zipFile
     }
 
-    fun zipFolder(rootDestination: File, outputFolderName: String, outputFileName: String, inputParentFolderName: String, inputFolderName: String) {
+    fun zipFolder(rootDestination: File, outputFolderName: String, outputFileName: String, files: List<File>) {
         val zipFile = createOrGetFile(rootDestination, outputFolderName, outputFileName)
-        val folderToZip = createOrGetFile(rootDestination, inputParentFolderName, inputFolderName)
+        val folderToZip = createOrGetFile(rootDestination, outputFolderName, outputFolderName)
 
         val zipOut = ZipOutputStream(FileOutputStream(zipFile))
 
         ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { output ->
-            if(folderToZip.length() > 1) {
-                FileInputStream(folderToZip).use { input ->
-                    BufferedInputStream(input).use { origin ->
-                        val entry = ZipEntry(input.name)
-                        output.putNextEntry(entry)
-                        origin.copyTo(output, 1024)
+            files.forEach { file ->
+                if (file.length() > 1) {
+                    FileInputStream(file).use { input ->
+                        BufferedInputStream(input).use { origin ->
+                            val entry = ZipEntry(file.path)
+                            output.putNextEntry(entry)
+                            origin.copyTo(output, 1024)
+                        }
                     }
                 }
             }

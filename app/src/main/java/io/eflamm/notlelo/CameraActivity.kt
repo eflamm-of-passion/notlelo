@@ -112,8 +112,10 @@ class CameraActivity : AppCompatActivity() {
     }
 
     fun zipAll(inputFilePath: String, outputFilePath: String) {
-        val textFile = StorageUtils.setTextInStorage(filesDir, this, "notlelo", "test.txt", "hello world")
-        val zipFile = StorageUtils.zipFile(filesDir, this, "notlelo", "test.zip", textFile)
+        val textFile1 = StorageUtils.setTextInStorage(filesDir, this, "notlelo", "camp1", "test1.txt", "hello world")
+        val textFile2 = StorageUtils.setTextInStorage(filesDir, this, "notlelo", "camp2", "test2.txt", "hello world")
+//        val zipFile = StorageUtils.zipFile(filesDir, this, "notlelo", "test.zip", textFile)
+        val zipFile = StorageUtils.zipFolder(filesDir, "notlelo", "test.zip", listOf(textFile1, textFile2))
 
 //        val filesName = filesDir.listFiles().map { it.name }
 //        Toast.makeText(applicationContext, filesName.toString(), Toast.LENGTH_LONG).show()
