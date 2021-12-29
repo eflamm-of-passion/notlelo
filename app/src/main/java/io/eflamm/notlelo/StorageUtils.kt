@@ -1,0 +1,120 @@
+package io.eflamm.notlelo
+
+import android.content.Context
+import android.os.Environment
+import android.util.Log
+import android.widget.Toast
+import java.io.*
+import java.lang.NullPointerException
+import java.lang.StringBuilder
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+
+// source : https://openclassrooms.com/en/courses/5779271-manage-your-data-to-have-a-100-offline-android-app-in-kotlin/5954921-create-a-file-on-external-storage
+object StorageUtils {
+
+    // externalStorage
+
+    fun isExternalStorageWritable(): Boolean {
+        val state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED == state;
+    }
+
+    // read and write files
+
+    fun getTextFromStorage(rootDestination: File, context: Context, folderName: String, fileName: String): String? {
+        val file =  createOrGetFile(rootDestination, folderName, fileName, );
+        return readFile(context, file);
+    }
+
+    fun setTextInStorage(rootDestination: File, context: Context, folderName: String, fileName: String, text: String): File {
+        val file = createOrGetFile(rootDestination, folderName, fileName )
+        return writeFile(context, file, text)
+    }
+
+    fun zipAll() {
+
+    }
+
+
+    fun createOrGetFile(destination: File, folderName: String, fileName: String): File {
+        val folder = File(destination, folderName)
+        folder.mkdirs()
+        return File(folder, fileName)
+    }
+
+    fun zipFile(rootDestination: File, context: Context, folderName: String, fileName: String, fileToZip1: File): File {
+        val zipFile = createOrGetFile(rootDestination, folderName, fileName)
+        val zipOut = ZipOutputStream(FileOutputStream(zipFile))
+        val fis = FileInputStream(fileToZip1)
+        val origin = BufferedInputStream(fis)
+        zipOut.putNextEntry(ZipEntry(fileToZip1.name))
+
+        origin.copyTo(zipOut, 1024)
+        origin.close()
+        zipOut.close()
+
+        return zipFile
+    }
+
+    fun zipFolder(rootDestination: File, outputFolderName: String, outputFileName: String, inputParentFolderName: String, inputFolderName: String) {
+        val zipFile = createOrGetFile(rootDestination, outputFolderName, outputFileName)
+        val folderToZip = createOrGetFile(rootDestination, inputParentFolderName, inputFolderName)
+
+        val zipOut = ZipOutputStream(FileOutputStream(zipFile))
+
+        ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { output ->
+            if(folderToZip.length() > 1) {
+                FileInputStream(folderToZip).use { input ->
+                    BufferedInputStream(input).use { origin ->
+                        val entry = ZipEntry(input.name)
+                        output.putNextEntry(entry)
+                        origin.copyTo(output, 1024)
+                    }
+                }
+            }
+        }
+    }
+
+    fun getFileFromStorage(rootDestination: File, context: Context, folderName: String, fileName: String): File? {
+        try {
+            return createOrGetFile(rootDestination, folderName, fileName)
+        } catch (e: NullPointerException) {
+            Toast.makeText(context, context.getString(R.string.error_happened), Toast.LENGTH_LONG).show()
+        }
+        return null
+    }
+
+    private fun readFile(context: Context, file: File): String {
+        val sb = StringBuilder();
+        if(file.exists()) {
+            try {
+                val bufferedReader = file.bufferedReader();
+                bufferedReader.useLines { lines ->
+                    lines.forEach {
+                        sb.append(it)
+                        sb.append("/n")
+                    }
+                }
+            } catch (e : IOException) {
+                Toast.makeText(context, context.getString(R.string.error_happened), Toast.LENGTH_LONG).show();
+            }
+        }
+        return sb.toString();
+    }
+
+    private fun writeFile(context: Context, file: File, text: String): File {
+        try {
+            file.parentFile.mkdirs();
+            file.bufferedWriter().use {
+                out -> out.write(text);
+            }
+        } catch (e: IOException) {
+            Toast.makeText(context, context.getString(R.string.error_happened), Toast.LENGTH_LONG).show();
+            return file
+        }
+
+        Toast.makeText(context, context.getString(R.string.file_saved), Toast.LENGTH_LONG).show();
+        return file
+    }
+}

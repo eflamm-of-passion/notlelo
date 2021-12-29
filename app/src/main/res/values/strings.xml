@@ -4,4 +4,7 @@
     <string name="home_camera">Prendre en photo</string>
     <string name="home_library">Mes numéros de lot</string>
     <string name="home_settings">Paramètres</string>
+    <string name="error_happened">Une erreur est survenue</string>
+    <string name="file_saved">Fichier enregistré</string>
+    <string name="notlelo_share">Exporter les numéros de lots</string>
 </resources>

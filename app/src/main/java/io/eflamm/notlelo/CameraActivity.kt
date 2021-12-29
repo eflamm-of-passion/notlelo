@@ -1,6 +1,7 @@
 package io.eflamm.notlelo
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -26,8 +27,7 @@ import java.util.concurrent.Executors
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import android.content.Intent
-
-
+import androidx.core.content.FileProvider
 
 
 // source : https://developer.android.com/codelabs/camerax-getting-started#0
@@ -37,6 +37,7 @@ class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
+    private val AUTHORITY = "io.eflamm.notlelo.fileprovider"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,80 +111,30 @@ class CameraActivity : AppCompatActivity() {
         return if (mediaDir != null && mediaDir.exists()) mediaDir else filesDir
     }
 
-    fun zipBack(directory: String, zipFile: String) {
-        val inputFolder = resources.getString(R.string.app_name) + "/2021-12-2"
-        val outputFilePath = resources.getString(R.string.app_name) + "/2021-12-2.zip"
-        val outputFile = createPhotoFolder(outputFilePath)
-
-
-//        val sourceFile = File(directory)
-        val file = File(inputFolder)
-
-            ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { output ->
-                    if(file.length() > 1) {
-                        FileInputStream(file).use { input ->
-                            BufferedInputStream(input).use { origin ->
-                                val entry = ZipEntry(outputFilePath)
-                                output.putNextEntry(entry)
-                                origin.copyTo(output, 1024)
-                            }
-                        }
-                    }
-            }
-    }
-
     fun zipAll(inputFilePath: String, outputFilePath: String) {
-        // everything will happen in filesDir
-        val inputFilePath = resources.getString(R.string.app_name) + "/test.jpg"
-        val filePath1 = "test1.txt"
-        val filePath2 = "test2.txt"
-        val zipFilePath = "test.zip"
-        val file1 = File(filesDir, filePath1)
-        val file2 = File(filesDir, filePath2)
-        val zipFile = File(filesDir, zipFilePath)
+        val textFile = StorageUtils.setTextInStorage(filesDir, this, "notlelo", "test.txt", "hello world")
+        val zipFile = StorageUtils.zipFile(filesDir, this, "notlelo", "test.zip", textFile)
 
-
-
-        file1.appendText("hello world")
-        file2.appendText("foo bar")
-
-        val zipOut = ZipOutputStream(FileOutputStream(zipFile.absolutePath))
-        val fis = FileInputStream(file1)
-        var origin = BufferedInputStream(fis)
-        zipOut.putNextEntry(ZipEntry(file1.name))
-        val bytes = ByteArray(1024)
-        origin.buffered(1024).reader().forEachLine {
-            zipOut.write(bytes)
-        }
-        origin.close()
-        zipOut.close()
-
-//        val inputAsString = FileInputStream(file1).bufferedReader().use {
-//            Toast.makeText(applicationContext, it.readText(), Toast.LENGTH_LONG).show()
-//        }
-
-
-
-        val filesName = filesDir.listFiles().map { it.name }
+//        val filesName = filesDir.listFiles().map { it.name }
 //        Toast.makeText(applicationContext, filesName.toString(), Toast.LENGTH_LONG).show()
-        Toast.makeText(applicationContext, zipFile.totalSpace.toString(), Toast.LENGTH_LONG).show()
+//        Toast.makeText(applicationContext, zipFile.totalSpace.toString(), Toast.LENGTH_LONG).show()
+//        Toast.makeText(applicationContext, StorageUtils.getTextFromStorage(filesDir, this, "notlelo", "test.txt"), Toast.LENGTH_LONG).show()
+
         // the files is
 
-        shareFile(zipFile)
+        shareFile(filesDir, this, "notlelo", "test.zip")
     }
 
-    private fun shareFile(fileToShare: File) {
-        val intentShareFile = Intent(Intent.ACTION_SEND)
-        if(fileToShare.exists()) {
-            intentShareFile.type = "application/zip";
-            intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(fileToShare));
+    private fun shareFile(rootDestination: File, context: Context, folderName: String, fileName: String ) {
+        val internalFile =
+            StorageUtils.getFileFromStorage(rootDestination, context, folderName, fileName)
+        val contentUri = FileProvider.getUriForFile(context, AUTHORITY, internalFile!!)
+                Toast.makeText(applicationContext, "internalFile " +internalFile.totalSpace.toString(), Toast.LENGTH_LONG).show()
+        val sharingIntent = Intent(Intent.ACTION_SEND)
+        sharingIntent.type = "application/zip"
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
 
-            intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
-                "Sharing File...");
-            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
-
-            startActivity(Intent.createChooser(intentShareFile, "Share File"));
-        }
+        startActivity(Intent.createChooser(sharingIntent, getString(R.string.notlelo_share)))
     }
 
     private fun startCamera() {
