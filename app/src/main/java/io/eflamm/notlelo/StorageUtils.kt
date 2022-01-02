@@ -2,7 +2,6 @@ package io.eflamm.notlelo
 
 import android.content.Context
 import android.os.Environment
-import android.util.Log
 import android.widget.Toast
 import java.io.*
 import java.lang.NullPointerException
@@ -16,15 +15,15 @@ object StorageUtils {
     // externalStorage
 
     fun isExternalStorageWritable(): Boolean {
-        val state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED == state;
+        val state = Environment.getExternalStorageState()
+        return Environment.MEDIA_MOUNTED == state
     }
 
     // read and write files
 
     fun getTextFromStorage(rootDestination: File, context: Context, folderName: String, fileName: String): String? {
-        val file =  createOrGetFile(rootDestination, folderName, fileName );
-        return readFile(context, file);
+        val file =  createOrGetFile(rootDestination, folderName, fileName )
+        return readFile(context, file)
     }
 
     fun setTextInStorage(rootDestination: File, context: Context, folderName: String, subFolderName: String, fileName: String, text: String): File {
@@ -96,10 +95,10 @@ object StorageUtils {
     }
 
     private fun readFile(context: Context, file: File): String {
-        val sb = StringBuilder();
+        val sb = StringBuilder()
         if(file.exists()) {
             try {
-                val bufferedReader = file.bufferedReader();
+                val bufferedReader = file.bufferedReader()
                 bufferedReader.useLines { lines ->
                     lines.forEach {
                         sb.append(it)
@@ -107,24 +106,24 @@ object StorageUtils {
                     }
                 }
             } catch (e : IOException) {
-                Toast.makeText(context, context.getString(R.string.error_happened), Toast.LENGTH_LONG).show();
+                Toast.makeText(context, context.getString(R.string.error_happened), Toast.LENGTH_LONG).show()
             }
         }
-        return sb.toString();
+        return sb.toString()
     }
 
     private fun writeFile(context: Context, file: File, text: String): File {
         try {
-            file.parentFile.mkdirs();
+            file.parentFile.mkdirs()
             file.bufferedWriter().use {
-                out -> out.write(text);
+                out -> out.write(text)
             }
         } catch (e: IOException) {
-            Toast.makeText(context, context.getString(R.string.error_happened), Toast.LENGTH_LONG).show();
+            Toast.makeText(context, context.getString(R.string.error_happened), Toast.LENGTH_LONG).show()
             return file
         }
 
-        Toast.makeText(context, context.getString(R.string.file_saved), Toast.LENGTH_LONG).show();
+        Toast.makeText(context, context.getString(R.string.file_saved), Toast.LENGTH_LONG).show()
         return file
     }
 }

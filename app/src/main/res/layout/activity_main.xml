@@ -45,6 +45,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
+            android:id="@+id/layout_select_camp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -61,7 +62,41 @@
                 android:id="@+id/button_home_add_event"
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
-                android:text="+" />
+                android:text="+"
+                android:onClick="toggleLayoutsVisibility" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_create_camp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/text_input_home_camp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text="Name" />
+
+            <Button
+                android:id="@+id/button_home_validate_add"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="O"
+                android:onClick="toggleLayoutsVisibility" />
+
+            <Button
+                android:id="@+id/button_home_cancel_add"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="X"
+                android:onClick="toggleLayoutsVisibility" />
         </LinearLayout>
 
         <Button
