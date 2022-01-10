@@ -6,11 +6,19 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.*
 
-@Entity(foreignKeys = [ForeignKey(entity = Day::class, parentColumns = arrayOf("id"), childColumns = arrayOf("eventId"))], indices = [Index("eventId")])
-public class Event {
+//@Entity(foreignKeys = [ForeignKey(entity = Day::class, parentColumns = arrayOf("id"), childColumns = arrayOf("eventId"))], indices = [Index("eventId")])
+@Entity
+class Event(
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0
-    val uuid: UUID = UUID.randomUUID()
-    val name: String = ""
-    val days: List<Day> = emptyList()
+    val id: Long,
+    val uuid: String,
+    var name: String,
+//    val days: List<Day>,
+) {
+    constructor(name: String) : this(
+            0,
+            UUID.randomUUID().toString(),
+            name,
+//            emptyList()
+    )
 }

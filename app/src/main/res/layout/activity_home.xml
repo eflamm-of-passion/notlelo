@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F4F4EF"
-    tools:context=".MainActivity">
+    tools:context=".HomeActivity">
 
     <ImageView
         android:id="@+id/image_title_background"
@@ -62,8 +62,8 @@
                 android:id="@+id/button_home_add_event"
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
-                android:text="+"
-                android:onClick="toggleLayoutsVisibility" />
+                android:onClick="onClickAddEventButton"
+                android:text="+" />
         </LinearLayout>
 
         <LinearLayout
@@ -77,26 +77,28 @@
 
             <EditText
                 android:id="@+id/text_input_home_camp"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
+                android:hint="@string/home_event_input_placeholder"
                 android:inputType="textPersonName"
-                android:text="Name" />
+                android:textColor="@color/black"
+                android:textColorHint="@android:color/darker_gray" />
 
             <Button
                 android:id="@+id/button_home_validate_add"
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:text="O"
-                android:onClick="toggleLayoutsVisibility" />
+                android:onClick="onClickValidateAddEventButton" />
 
             <Button
                 android:id="@+id/button_home_cancel_add"
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:text="X"
-                android:onClick="toggleLayoutsVisibility" />
+                android:onClick="onClickCancelAddEventButton" />
         </LinearLayout>
 
         <Button

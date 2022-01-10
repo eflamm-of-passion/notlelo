@@ -15,7 +15,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import kotlinx.android.synthetic.main.activity_camera.*
 import java.io.*
 import java.lang.Exception
 import java.text.SimpleDateFormat
@@ -23,6 +22,8 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.content.Intent
+import android.widget.Button
+import androidx.camera.view.PreviewView
 import androidx.core.content.FileProvider
 
 
@@ -45,7 +46,8 @@ class CameraActivity : AppCompatActivity() {
              ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
          }
 
-        button_camera_capture.setOnClickListener { takePhoto() }
+        val cameraCaptureButton = this.findViewById<Button>(R.id.button_camera_capture)
+        cameraCaptureButton.setOnClickListener { takePhoto() }
         // TODO give the file architecture
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -111,6 +113,7 @@ class CameraActivity : AppCompatActivity() {
         cameraProviderFuture.addListener(Runnable {
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
+            val viewFinder = this.findViewById<PreviewView>(R.id.viewFinder)
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(viewFinder.surfaceProvider)
             }
