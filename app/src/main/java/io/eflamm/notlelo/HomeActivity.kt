@@ -51,6 +51,13 @@ class HomeActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
+    fun onClickSettingsButton (view : View) {
+        val intent = Intent(this, SettingsActivity::class.java).apply {
+
+        }
+        startActivity(intent)
+    }
+
     fun onClickAddEventButton(view: View) {
         this.toggleLayoutsVisibility()
     }

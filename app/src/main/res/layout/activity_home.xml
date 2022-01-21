@@ -133,7 +133,8 @@
             android:text="@string/home_settings"
             android:textAllCaps="false"
             android:textColor="@color/secondary"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:onClick="onClickSettingsButton"/>
 
     </LinearLayout>
 
