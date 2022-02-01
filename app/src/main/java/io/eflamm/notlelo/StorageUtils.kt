@@ -12,29 +12,13 @@ import java.util.zip.ZipOutputStream
 // source : https://openclassrooms.com/en/courses/5779271-manage-your-data-to-have-a-100-offline-android-app-in-kotlin/5954921-create-a-file-on-external-storage
 object StorageUtils {
 
-    // externalStorage
-
-    fun isExternalStorageWritable(): Boolean {
-        val state = Environment.getExternalStorageState()
-        return Environment.MEDIA_MOUNTED == state
-    }
 
     // read and write files
-
-    fun getTextFromStorage(rootDestination: File, context: Context, folderName: String, fileName: String): String? {
-        val file =  createOrGetFile(rootDestination, folderName, fileName )
-        return readFile(context, file)
-    }
 
     fun setTextInStorage(rootDestination: File, context: Context, folderName: String, subFolderName: String, fileName: String, text: String): File {
         val file = createOrGetFileInsideSubFolder(rootDestination, folderName, subFolderName, fileName )
         return writeFile(context, file, text)
     }
-
-    fun zipAll() {
-
-    }
-
 
     fun createOrGetFile(destination: File, folderName: String, fileName: String): File {
         val folder = File(destination, folderName)
@@ -66,9 +50,6 @@ object StorageUtils {
 
     fun zipFolder(rootDestination: File, outputFolderName: String, outputFileName: String, files: List<File>) {
         val zipFile = createOrGetFile(rootDestination, outputFolderName, outputFileName)
-        val folderToZip = createOrGetFile(rootDestination, outputFolderName, outputFolderName)
-
-        val zipOut = ZipOutputStream(FileOutputStream(zipFile))
 
         ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { output ->
             files.forEach { file ->

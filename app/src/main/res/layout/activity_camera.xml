@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+
     </androidx.camera.view.PreviewView>
 
     <LinearLayout
@@ -152,7 +153,8 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:text="X" />
+            android:text="X"
+            android:onClick="onClickBackButton" />
 
         <Button
             android:id="@+id/button_camera_capture"
@@ -168,6 +170,25 @@
             android:layout_height="50dp"
             android:layout_weight="1"
             android:text="O" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/emptyPreviewListButton"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:text="X"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/previewList"
+        android:layout_width="80dp"
+        android:layout_height="600dp"
+        android:orientation="vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/emptyPreviewListButton">
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

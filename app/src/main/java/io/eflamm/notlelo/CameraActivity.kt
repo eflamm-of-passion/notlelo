@@ -2,29 +2,32 @@ package io.eflamm.notlelo
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import java.io.*
-import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import android.content.Intent
-import android.widget.Button
-import androidx.camera.view.PreviewView
-import androidx.core.content.FileProvider
 
 
 // source : https://developer.android.com/codelabs/camerax-getting-started#0
@@ -32,9 +35,10 @@ import androidx.core.content.FileProvider
 class CameraActivity : AppCompatActivity() {
 
     private var imageCapture: ImageCapture? = null
+    private var previewList: MutableList<File> = mutableListOf()
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
-    private val AUTHORITY = "io.eflamm.notlelo.fileprovider"
+    private val _authority = "io.eflamm.notlelo.fileprovider"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,17 +73,22 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    fun onClickBackButton (view : View) {
+        finish()
+    }
+
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
-        val appFolder = resources.getString(R.string.app_name)
-        val dayFolder = "2021-12-2"
-        val mealFolder = "dinner"
-        val productFolder = "chocolate"
-        val folders = "$appFolder/$dayFolder/$mealFolder/$productFolder"
-        val photoOutputDirectory = createPhotoFolder(folders)
+//        val appFolder = resources.getString(R.string.app_name)
+        val cacheFolder = applicationContext.cacheDir.absolutePath
+//        val dayFolder = "2021-12-2"
+//        val mealFolder = "dinner"
+//        val productFolder = "chocolate"
+//        val folders = "$cacheFolder/$dayFolder/$mealFolder/$productFolder"
+//        val photoOutputDirectory = createPhotoFolder(folders)
         val photoFile = File(
-            photoOutputDirectory,
+            cacheFolder,
             SimpleDateFormat(FILENAME_FORMAT, Locale.FRANCE).format(System.currentTimeMillis()) + ".jpg"
         )
 
@@ -94,11 +103,25 @@ class CameraActivity : AppCompatActivity() {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                     val savedUri = Uri.fromFile(photoFile)
                     val msg = "Photo captured succeeded: $savedUri"
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+                    previewList.add(photoFile)
+                    Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
                     Log.d("takePhoto", msg)
+                    displayPreviewList()
                 }
             }
         )
+    }
+
+    private fun displayPreviewList() {
+        // TODO refine this method
+        val previewListLayout = this.findViewById<LinearLayout>(R.id.previewList)
+        previewListLayout.removeAllViews()
+        for(previewPhoto in previewList) {
+            val myBitmap = BitmapFactory.decodeFile(previewPhoto.getAbsolutePath())
+            val imageView = ImageView(this)
+            imageView.setImageBitmap(myBitmap);
+            previewListLayout.addView(imageView)
+        }
     }
 
     private fun createPhotoFolder(folders: String): File {
@@ -149,10 +172,6 @@ class CameraActivity : AppCompatActivity() {
 
 
 
-
-
-
-
     fun zipAll(inputFilePath: String, outputFilePath: String) {
         val textFile1 = StorageUtils.setTextInStorage(filesDir, this, "notlelo", "camp1", "test1.txt", "hello world")
         val textFile2 = StorageUtils.setTextInStorage(filesDir, this, "notlelo", "camp2", "test2.txt", "hello world")
@@ -172,7 +191,7 @@ class CameraActivity : AppCompatActivity() {
     private fun shareFile(rootDestination: File, context: Context, folderName: String, fileName: String ) {
         val internalFile =
             StorageUtils.getFileFromStorage(rootDestination, context, folderName, fileName)
-        val contentUri = FileProvider.getUriForFile(context, AUTHORITY, internalFile!!)
+        val contentUri = FileProvider.getUriForFile(context, _authority, internalFile!!)
                 Toast.makeText(applicationContext, "internalFile " +internalFile.totalSpace.toString(), Toast.LENGTH_LONG).show()
         val sharingIntent = Intent(Intent.ACTION_SEND)
         sharingIntent.type = "application/zip"
