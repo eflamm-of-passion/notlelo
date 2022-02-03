@@ -77,6 +77,12 @@ class CameraActivity : AppCompatActivity() {
         finish()
     }
 
+    fun onClickEmptyPreviews (view: View) {
+        val previewListLayout = this.findViewById<LinearLayout>(R.id.previewList)
+        previewListLayout.removeAllViews()
+        StorageUtils.clearCache(applicationContext)
+    }
+
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
@@ -119,7 +125,7 @@ class CameraActivity : AppCompatActivity() {
         for(previewPhoto in previewList) {
             val myBitmap = BitmapFactory.decodeFile(previewPhoto.getAbsolutePath())
             val imageView = ImageView(this)
-            imageView.setImageBitmap(myBitmap);
+            imageView.setImageBitmap(myBitmap)
             previewListLayout.addView(imageView)
         }
     }

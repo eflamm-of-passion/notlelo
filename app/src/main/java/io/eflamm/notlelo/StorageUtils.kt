@@ -1,9 +1,9 @@
 package io.eflamm.notlelo
 
 import android.content.Context
-import android.os.Environment
 import android.widget.Toast
 import java.io.*
+import java.lang.Exception
 import java.lang.NullPointerException
 import java.lang.StringBuilder
 import java.util.zip.ZipEntry
@@ -32,20 +32,6 @@ object StorageUtils {
         val subFolder = File(folder, subFolderName)
         subFolder.mkdirs()
         return File(subFolder, fileName)
-    }
-
-    fun zipFile(rootDestination: File, context: Context, folderName: String, fileName: String, fileToZip1: File): File {
-        val zipFile = createOrGetFile(rootDestination, folderName, fileName)
-        val zipOut = ZipOutputStream(FileOutputStream(zipFile))
-        val fis = FileInputStream(fileToZip1)
-        val origin = BufferedInputStream(fis)
-        zipOut.putNextEntry(ZipEntry(fileToZip1.name))
-
-        origin.copyTo(zipOut, 1024)
-        origin.close()
-        zipOut.close()
-
-        return zipFile
     }
 
     fun zipFolder(rootDestination: File, outputFolderName: String, outputFileName: String, files: List<File>) {
@@ -106,5 +92,28 @@ object StorageUtils {
 
         Toast.makeText(context, context.getString(R.string.file_saved), Toast.LENGTH_LONG).show()
         return file
+    }
+
+    fun clearCache(context: Context) {
+        try {
+            val cache = context.cacheDir
+            deleteFolder(cache)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun deleteFolder(file: File): Boolean {
+        if (file.isDirectory) {
+            val children = file.list()
+            children.forEach {
+                return deleteFolder(File(it))
+            }
+            return file.delete()
+        } else if (file.isFile) {
+            return file.delete()
+        } else {
+            return false
+        }
     }
 }
