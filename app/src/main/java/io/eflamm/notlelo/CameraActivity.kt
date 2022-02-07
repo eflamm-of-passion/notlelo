@@ -9,10 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -55,6 +52,15 @@ class CameraActivity : AppCompatActivity() {
         // TODO give the file architecture
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        fillMealSpinner()
+    }
+
+    private fun fillMealSpinner() {
+        val spinner = this.findViewById<Spinner>(R.id.meal_spinner)
+        val mealsAvailable = resources.getStringArray(R.array.camera_meals)
+        val adapter = ArrayAdapter(this, R.layout.spinner_item, mealsAvailable)
+        spinner.adapter = adapter
     }
 
     override fun onRequestPermissionsResult(
@@ -73,6 +79,11 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    fun onClickSaveProduct(view: View) {
+        val saveProductModal = this.findViewById<LinearLayout>(R.id.layout_camera_save_product)
+        saveProductModal.visibility = View.VISIBLE
+    }
+
     fun onClickBackButton (view : View) {
         finish()
     }
@@ -81,6 +92,35 @@ class CameraActivity : AppCompatActivity() {
         val previewListLayout = this.findViewById<LinearLayout>(R.id.previewList)
         previewListLayout.removeAllViews()
         StorageUtils.clearCache(applicationContext)
+    }
+
+    fun onClickCancelSaveProduct(view: View) {
+        // TODO clean the fields
+        val modal = findViewById<LinearLayout>(R.id.layout_camera_save_product)
+        modal.visibility = View.GONE
+    }
+
+    fun onClickValidateSaveProduct(view: View) {
+        val productNameInput = findViewById<EditText>(R.id.input_product_name)
+        val mealNameSpinner = findViewById<Spinner>(R.id.meal_spinner)
+
+        val productName = productNameInput.text
+        val mealName = mealNameSpinner.selectedItem
+        val selectedEvent = StorageUtils.getStringFromSharedPreferences(applicationContext, StorageUtils.SELECTED_EVENT)
+        
+        // TODO save the product in the database
+        // TODO move the pictures from cache to internal storage
+
+        // remove the previews
+        val previewListLayout = this.findViewById<LinearLayout>(R.id.previewList)
+        previewListLayout.removeAllViews()
+        StorageUtils.clearCache(applicationContext)
+
+        // TODO clean the fields
+
+        // close the modal
+        val modal = findViewById<LinearLayout>(R.id.layout_camera_save_product)
+        modal.visibility = View.GONE
     }
 
     private fun takePhoto() {

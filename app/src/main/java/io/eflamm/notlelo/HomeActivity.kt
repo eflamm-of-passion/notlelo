@@ -1,14 +1,11 @@
 package io.eflamm.notlelo
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.Spinner
+import android.widget.*
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.viewmodel.EventViewModel
 import io.eflamm.notlelo.viewmodel.EventViewModelFactory
@@ -37,11 +34,18 @@ class HomeActivity : AppCompatActivity() {
             var eventNameList: List<String> = events.map { event -> event.name }
             val adapter = ArrayAdapter<String>(this, R.layout.spinner_item, eventNameList)
             spinner.adapter = adapter
-        }
-    }
+             spinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+                 override fun onNothingSelected(parent: AdapterView<*>?) {
+                    // not yet implemented
+                 }
 
-    fun onSelectEvent(view: View) {
-        // TODO save the event in the state
+                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                     val selectedEvent = parent?.getItemAtPosition(position).toString()
+                     StorageUtils.saveStringToSharedPreferences(applicationContext, StorageUtils.SELECTED_EVENT, selectedEvent)
+                 }
+
+             }
+        }
     }
 
     fun onClickCameraButton (view : View) {

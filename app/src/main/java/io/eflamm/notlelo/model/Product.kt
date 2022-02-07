@@ -7,17 +7,22 @@ import androidx.room.PrimaryKey
 import java.util.*
 
 //@Entity(foreignKeys = [ForeignKey(entity = Picture::class, parentColumns = arrayOf("id"), childColumns = arrayOf("productId"))], indices = [Index("productId")])
+@Entity
 public class Product(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     val uuid: String,
     val name: String,
-    val pictures: List<Picture>
+    val date: Long,
+    val meal: String,
+    //val pictures: List<Picture>
 ) {
-    constructor(name: String): this(
+    constructor(name: String, meal: String): this(
         0,
         UUID.randomUUID().toString(),
         name,
-        emptyList()
+        0L,
+        meal,
+        //emptyList()
     )
 }

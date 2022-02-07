@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Notlelo</string>
+    <string name="shared_preferences_file">shared_preferences_file</string>
     <string name="lowercase_app_name">notlelo</string>
     <string name="home_camera">Prendre en photo</string>
     <string name="home_library">Mes numéros de lot</string>
@@ -20,6 +21,15 @@
     <string name="camera_product_saved">Le produit a été enregistré</string>
     <string name="camera_validate_disabled">Veuillez prendre une photo avant d\'enregistrer le produit</string>
     <string name="camera_wait_to_take_picture">Veuillez attendre avant de prendre une nouvelle photo</string>
+    <string-array name="camera_meals">
+        <item>Petit-déjeuner</item>
+        <item>Déjeuner</item>
+        <item>Goûter</item>
+        <item>Dîner</item>
+        <item>Cinquième</item>
+        <item>Concours cuisine</item>
+        <item>Pique-nique</item>
+    </string-array>
     <string name="library_close">Fermer</string>
     <string name="library_delete">Supprimer</string>
     <string name="library_compress">Télécharger au format zip</string>

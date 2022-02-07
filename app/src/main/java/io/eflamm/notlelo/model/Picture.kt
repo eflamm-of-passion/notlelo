@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.*
 
-//@Entity
+@Entity
 public class Picture(
     @PrimaryKey(autoGenerate = true)
     val id: Long,

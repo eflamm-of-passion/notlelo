@@ -12,6 +12,19 @@ import java.util.zip.ZipOutputStream
 // source : https://openclassrooms.com/en/courses/5779271-manage-your-data-to-have-a-100-offline-android-app-in-kotlin/5954921-create-a-file-on-external-storage
 object StorageUtils {
 
+    val SELECTED_EVENT = "SELECTED_EVENT"
+
+    fun getStringFromSharedPreferences(context: Context, key: String): String? {
+        return context?.getSharedPreferences(context.getString(R.string.shared_preferences_file), Context.MODE_PRIVATE).getString(key, "")
+    }
+
+    fun saveStringToSharedPreferences(context: Context, key: String, value: String) {
+        val sharedPreferences = context?.getSharedPreferences(context.getString(R.string.shared_preferences_file), Context.MODE_PRIVATE) ?: return
+        with (sharedPreferences.edit()) {
+            putString(SELECTED_EVENT, value)
+            apply()
+        }
+    }
 
     // read and write files
 
