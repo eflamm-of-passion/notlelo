@@ -21,6 +21,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/settings_deleteEvent"
+        android:textColor="@color/secondary"
+        android:textSize="@dimen/h1"
+        android:layout_marginStart="@dimen/h1Margin"
+        android:letterSpacing="@dimen/defaultLetterSpacing"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/settingsHeaderView" />
 
@@ -48,6 +52,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/faq_title"
+        android:textColor="@color/secondary"
+        android:textSize="@dimen/h1"
+        android:layout_marginStart="@dimen/h1Margin"
+        android:letterSpacing="@dimen/defaultLetterSpacing"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/hr1" />
 
@@ -66,14 +74,19 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="4dp"
         android:text="@string/settings_about"
+        android:textSize="@dimen/h1"
+        android:textColor="@color/secondary"
+        android:layout_marginStart="@dimen/h1Margin"
         app:layout_constraintBottom_toTopOf="@+id/textView6"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/textView6"
-        android:layout_width="wrap_content"
+        android:layout_width="380sp"
         android:layout_height="wrap_content"
+        android:textColor="@color/secondary"
         android:layout_marginBottom="10dp"
+        android:letterSpacing="@dimen/defaultLetterSpacing"
         android:text="@string/settings_aboutDescription"
         app:layout_constraintBottom_toTopOf="@+id/button9"
         app:layout_constraintEnd_toEndOf="parent"
@@ -95,6 +108,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="22dp"
         android:text="@string/settings_signature"
+        android:textColor="@color/secondary"
         app:layout_constraintBottom_toTopOf="@+id/textView8"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -104,6 +118,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="version"
+        android:textColor="@color/secondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -117,6 +132,6 @@
         app:layout_constraintBottom_toTopOf="@+id/button8"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3"></LinearLayout>
+        app:layout_constraintTop_toBottomOf="@+id/textView3"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

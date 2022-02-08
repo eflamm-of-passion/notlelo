@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="title">50sp</dimen>
+    <dimen name="h1">25sp</dimen>
+    <dimen name="h1Margin">10dp</dimen>
+    <dimen name="defaultLetterSpacing">.05</dimen>
+</resources>

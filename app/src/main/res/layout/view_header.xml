@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="80dp"
-    android:background="#003A55">
+    android:background="@color/primary">
 
 
     <TextView
@@ -14,7 +14,7 @@
         android:fontFamily="@font/caveat_brush"
         android:text="@string/home_settings"
         android:textColor="@android:color/white"
-        android:textSize="50sp"
+        android:textSize="@dimen/title"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/button10"
