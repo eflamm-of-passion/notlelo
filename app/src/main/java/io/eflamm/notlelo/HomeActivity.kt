@@ -22,7 +22,7 @@ class HomeActivity : AppCompatActivity() {
             grey the buttons
          **/
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_home)
+        setContentView(R.layout.home_activity)
 
         fillEventListSpinner()
     }

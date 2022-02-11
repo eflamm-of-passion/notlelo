@@ -13,4 +13,10 @@ class EventRepository(private val eventDao: EventDao) {
     suspend fun insert(event: Event) {
         eventDao.insert(event)
     }
+
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun removeByNames(eventNames: List<String>) {
+        eventDao.deleteByNames(eventNames)
+    }
 }

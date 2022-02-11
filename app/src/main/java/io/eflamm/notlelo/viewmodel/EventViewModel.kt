@@ -12,6 +12,10 @@ class EventViewModel(private val repository: EventRepository): ViewModel() {
     fun insert(event: Event) = viewModelScope.launch {
         repository.insert(event)
     }
+
+    fun removeByNames(eventNames: List<String>) = viewModelScope.launch {
+        repository.removeByNames(eventNames)
+    }
 }
 
 class EventViewModelFactory(private val repository: EventRepository): ViewModelProvider.Factory {

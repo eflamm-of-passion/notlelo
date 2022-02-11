@@ -39,7 +39,7 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera)
+        setContentView(R.layout.camera_activity)
 
          if(allPermissionsGranted()) {
             startCamera()
@@ -91,7 +91,7 @@ class CameraActivity : AppCompatActivity() {
     fun onClickEmptyPreviews (view: View) {
         val previewListLayout = this.findViewById<LinearLayout>(R.id.previewList)
         previewListLayout.removeAllViews()
-        StorageUtils.clearCache(applicationContext)
+        StorageUtils.clearCache(applicationContext) // delete the pictures in the cache
     }
 
     fun onClickCancelSaveProduct(view: View) {

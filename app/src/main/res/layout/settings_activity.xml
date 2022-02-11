@@ -29,7 +29,7 @@
         app:layout_constraintTop_toBottomOf="@+id/settingsHeaderView" />
 
     <Button
-        android:id="@+id/button8"
+        android:id="@+id/deleteEventsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/settings_deleteEvent"
@@ -44,7 +44,7 @@
         android:layout_height="2dp"
         android:layout_marginTop="54dp"
         android:background="#c0c0c0"
-        app:layout_constraintTop_toBottomOf="@+id/button8"
+        app:layout_constraintTop_toBottomOf="@+id/deleteEventsButton"
         tools:layout_editor_absoluteX="16dp" />
 
     <TextView
@@ -88,12 +88,12 @@
         android:layout_marginBottom="10dp"
         android:letterSpacing="@dimen/defaultLetterSpacing"
         android:text="@string/settings_aboutDescription"
-        app:layout_constraintBottom_toTopOf="@+id/button9"
+        app:layout_constraintBottom_toTopOf="@+id/contactButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/button9"
+        android:id="@+id/contactButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="14dp"
@@ -125,13 +125,13 @@
 
     <LinearLayout
         android:id="@+id/settingsEventList"
-        android:layout_width="409dp"
-        android:layout_height="17dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="1dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/button8"
+        app:layout_constraintBottom_toTopOf="@+id/deleteEventsButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3"/>
+        app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
