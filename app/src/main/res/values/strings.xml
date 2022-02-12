@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Notlelo</string>
+    <string name="selected_event_key">selected_event_key</string>
     <string name="shared_preferences_file">shared_preferences_file</string>
     <string name="lowercase_app_name">notlelo</string>
     <string name="home_camera">Prendre en photo</string>

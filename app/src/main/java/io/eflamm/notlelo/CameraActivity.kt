@@ -20,6 +20,8 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import io.eflamm.notlelo.databinding.CameraActivityBinding
+import io.eflamm.notlelo.model.Event
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -31,15 +33,18 @@ import java.util.concurrent.Executors
 
 class CameraActivity : AppCompatActivity() {
 
+    private lateinit var binding: CameraActivityBinding
     private var imageCapture: ImageCapture? = null
     private var previewList: MutableList<File> = mutableListOf()
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
     private val _authority = "io.eflamm.notlelo.fileprovider"
+    private lateinit var selectedEvent: Event
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.camera_activity)
+        binding = CameraActivityBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
          if(allPermissionsGranted()) {
             startCamera()
@@ -47,7 +52,10 @@ class CameraActivity : AppCompatActivity() {
              ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
          }
 
-        val cameraCaptureButton = this.findViewById<Button>(R.id.button_camera_capture)
+        val bundle: Bundle? = this.intent.extras
+        selectedEvent = bundle?.getSerializable(getString(R.string.selected_event_key)) as Event
+
+        val cameraCaptureButton = binding.buttonCameraCapture
         cameraCaptureButton.setOnClickListener { takePhoto() }
         // TODO give the file architecture
         outputDirectory = getOutputDirectory()

@@ -6,12 +6,16 @@ import android.view.View
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import io.eflamm.notlelo.databinding.HomeActivityBinding
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.viewmodel.EventViewModel
 import io.eflamm.notlelo.viewmodel.EventViewModelFactory
+import io.eflamm.notlelo.views.EventSpinnerAdapter
 
 class HomeActivity : AppCompatActivity() {
 
+    private lateinit var binding: HomeActivityBinding
+    private lateinit var selectedEvent: Event
     private val eventViewModel: EventViewModel by viewModels {
         EventViewModelFactory((application as NotleloApplication).eventRepository)
     }
@@ -22,17 +26,18 @@ class HomeActivity : AppCompatActivity() {
             grey the buttons
          **/
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.home_activity)
+        binding = HomeActivityBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         fillEventListSpinner()
     }
 
     private fun  fillEventListSpinner() {
-        val spinner = this.findViewById<Spinner>(R.id.select_home_event)
+        val spinner = binding.selectHomeEvent
+        val context = this
 
-         eventViewModel.allEvents.observe(this) { events ->
-            var eventNameList: List<String> = events.map { event -> event.name }
-            val adapter = ArrayAdapter<String>(this, R.layout.spinner_item, eventNameList)
+         eventViewModel.allEvents.observe(context) { events ->
+            val adapter = EventSpinnerAdapter(this, R.layout.spinner_item, events)
             spinner.adapter = adapter
              spinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
                  override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -40,25 +45,23 @@ class HomeActivity : AppCompatActivity() {
                  }
 
                  override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                     val selectedEvent = parent?.getItemAtPosition(position).toString()
-                     StorageUtils.saveStringToSharedPreferences(applicationContext, StorageUtils.SELECTED_EVENT, selectedEvent)
+                     selectedEvent = adapter.getItem(position)
                  }
-
              }
         }
     }
 
     fun onClickCameraButton (view : View) {
-        val intent = Intent(this, CameraActivity::class.java).apply {
-
-        }
+        val intent = Intent(this, CameraActivity::class.java)
+        val bundle = Bundle()
+        bundle.putSerializable(getString(R.string.selected_event_key), selectedEvent)
+        intent.putExtras(bundle)
         startActivity(intent)
     }
 
     fun onClickSettingsButton (view : View) {
-        val intent = Intent(this, SettingsActivity::class.java).apply {
+        val intent = Intent(this, SettingsActivity::class.java)
 
-        }
         startActivity(intent)
     }
 

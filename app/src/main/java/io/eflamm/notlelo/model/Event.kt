@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.io.Serializable
 import java.util.*
 
 //@Entity(foreignKeys = [ForeignKey(entity = Product::class, parentColumns = arrayOf("id"), childColumns = arrayOf("eventId"))], indices = [Index("eventId")])
@@ -13,7 +14,7 @@ class Event(
     val id: Long,
     val uuid: String,
     var name: String,
-) {
+): Serializable {
     constructor(name: String) : this(
             0,
             UUID.randomUUID().toString(),
