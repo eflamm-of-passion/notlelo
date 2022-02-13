@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import io.eflamm.notlelo.model.*
 
 @Database(entities = [Event::class, Picture::class, Product::class], version = 1, exportSchema = false)
+@TypeConverters(DataConverter::class)
 abstract class NotleloDatabase: RoomDatabase() {
     // DAO
     abstract fun eventDao(): EventDao
@@ -26,7 +28,9 @@ abstract class NotleloDatabase: RoomDatabase() {
                     context.applicationContext,
                     NotleloDatabase::class.java,
                     "notlelo_database"
-                ).build()
+                )
+                    .addTypeConverter(DataConverter())
+                    .build()
                 INSTANCE = instance
                 // return instance
                 instance

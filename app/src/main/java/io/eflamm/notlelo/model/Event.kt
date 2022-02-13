@@ -14,10 +14,12 @@ class Event(
     val id: Long,
     val uuid: String,
     var name: String,
+    var products: List<Product>
 ): Serializable {
     constructor(name: String) : this(
             0,
             UUID.randomUUID().toString(),
             name,
+            emptyList()
     )
 }

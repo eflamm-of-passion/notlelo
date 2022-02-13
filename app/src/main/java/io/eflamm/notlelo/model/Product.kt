@@ -13,7 +13,7 @@ public class Product(
     val id: Long,
     val uuid: String,
     val name: String,
-    val date: Long,
+    val date: Date,
     val meal: String,
     //val pictures: List<Picture>
 ) {
@@ -21,7 +21,7 @@ public class Product(
         0,
         UUID.randomUUID().toString(),
         name,
-        0L,
+        Date(),
         meal,
         //emptyList()
     )

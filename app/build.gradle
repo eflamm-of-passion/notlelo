@@ -86,4 +86,6 @@ dependencies {
     // CameraX View class
     implementation "androidx.camera:camera-view:$rootProject.camerax_view_version"
 
+    implementation "com.google.code.gson:gson:$rootProject.gson"
+
 }
