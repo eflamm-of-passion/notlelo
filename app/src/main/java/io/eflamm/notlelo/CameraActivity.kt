@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -22,6 +23,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import io.eflamm.notlelo.databinding.CameraActivityBinding
 import io.eflamm.notlelo.model.Event
+import io.eflamm.notlelo.model.Product
+import io.eflamm.notlelo.viewmodel.EventViewModel
+import io.eflamm.notlelo.viewmodel.EventViewModelFactory
+import io.eflamm.notlelo.viewmodel.ProductViewModel
+import io.eflamm.notlelo.viewmodel.ProductViewModelFactory
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -40,6 +46,9 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private val _authority = "io.eflamm.notlelo.fileprovider"
     private lateinit var selectedEvent: Event
+    private val productViewModel: ProductViewModel by viewModels {
+        ProductViewModelFactory((application as NotleloApplication).productRepository)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,11 +121,11 @@ class CameraActivity : AppCompatActivity() {
         val productNameInput = findViewById<EditText>(R.id.input_product_name)
         val mealNameSpinner = findViewById<Spinner>(R.id.meal_spinner)
 
-        val productName = productNameInput.text
-        val mealName = mealNameSpinner.selectedItem
-        val selectedEvent = StorageUtils.getStringFromSharedPreferences(applicationContext, StorageUtils.SELECTED_EVENT)
-        
-        // TODO save the product in the database
+        val productName = productNameInput.text.toString()
+        val mealName = mealNameSpinner.selectedItem.toString()
+
+        val productToSave = Product(productName, mealName, selectedEvent.id)
+        productViewModel.insert(productToSave)
         // TODO move the pictures from cache to internal storage
 
         // remove the previews

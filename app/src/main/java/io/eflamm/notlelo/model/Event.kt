@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 import java.io.Serializable
 import java.util.*
 
-//@Entity(foreignKeys = [ForeignKey(entity = Product::class, parentColumns = arrayOf("id"), childColumns = arrayOf("eventId"))], indices = [Index("eventId")])
 @Entity
 class Event(
     @PrimaryKey(autoGenerate = true)

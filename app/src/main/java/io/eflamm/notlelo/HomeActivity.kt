@@ -30,6 +30,9 @@ class HomeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         fillEventListSpinner()
+        binding.buttonHomeCamera.setOnClickListener { onClickCameraButton() }
+        binding.buttonHomeLibrary.setOnClickListener { onClickLibraryButton() }
+        binding.buttonHomeSettings.setOnClickListener { onClickSettingsButton() }
     }
 
     private fun  fillEventListSpinner() {
@@ -51,7 +54,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    fun onClickCameraButton (view : View) {
+    private fun onClickCameraButton () {
         val intent = Intent(this, CameraActivity::class.java)
         val bundle = Bundle()
         bundle.putSerializable(getString(R.string.selected_event_key), selectedEvent)
@@ -59,7 +62,15 @@ class HomeActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun onClickSettingsButton (view : View) {
+    private fun onClickLibraryButton () {
+        val intent = Intent(this, LibraryActivity::class.java)
+        val bundle = Bundle()
+        bundle.putSerializable(getString(R.string.selected_event_key), selectedEvent)
+        intent.putExtras(bundle)
+        startActivity(intent)
+    }
+
+    private fun onClickSettingsButton () {
         val intent = Intent(this, SettingsActivity::class.java)
 
         startActivity(intent)

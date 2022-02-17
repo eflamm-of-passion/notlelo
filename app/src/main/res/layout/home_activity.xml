@@ -107,7 +107,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onClickCameraButton"
             android:text="@string/home_camera"
             android:textAllCaps="false"
             android:textColor="@color/secondary"
@@ -133,8 +132,7 @@
             android:text="@string/home_settings"
             android:textAllCaps="false"
             android:textColor="@color/secondary"
-            android:textSize="20sp"
-            android:onClick="onClickSettingsButton"/>
+            android:textSize="20sp" />
 
     </LinearLayout>
 

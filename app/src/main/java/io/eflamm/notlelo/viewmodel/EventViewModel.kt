@@ -2,12 +2,17 @@ package io.eflamm.notlelo.viewmodel
 
 import androidx.lifecycle.*
 import io.eflamm.notlelo.model.Event
+import io.eflamm.notlelo.model.EventWithProducts
 import io.eflamm.notlelo.repository.EventRepository
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
 
 class EventViewModel(private val repository: EventRepository): ViewModel() {
-    val allEvents: LiveData<List<Event>> = repository.allEvents.asLiveData()
+    val allEvents = repository.allEvents.asLiveData()
+
+    fun eventWithProducts(id: Long): LiveData<EventWithProducts> {
+        return repository.eventWithProducts(id).asLiveData()
+    }
 
     fun insert(event: Event) = viewModelScope.launch {
         repository.insert(event)
