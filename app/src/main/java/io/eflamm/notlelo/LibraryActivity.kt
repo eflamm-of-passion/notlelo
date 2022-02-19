@@ -1,16 +1,18 @@
 package io.eflamm.notlelo
 
+import android.hardware.lights.Light
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.activity.viewModels
 import io.eflamm.notlelo.databinding.LibraryActivityBinding
-import io.eflamm.notlelo.model.Event
+import io.eflamm.notlelo.model.*
 import io.eflamm.notlelo.viewmodel.EventViewModel
 import io.eflamm.notlelo.viewmodel.EventViewModelFactory
 import io.eflamm.notlelo.viewmodel.ProductViewModel
 import io.eflamm.notlelo.viewmodel.ProductViewModelFactory
+import java.util.*
 
 class LibraryActivity : AppCompatActivity() {
     private lateinit var binding: LibraryActivityBinding
@@ -35,6 +37,7 @@ class LibraryActivity : AppCompatActivity() {
 
     private fun fillLibrary(eventId: Long) {
         eventViewModel.eventWithProducts(eventId).observe(this){ eventWithProducts ->
+            val se = structureEvent(eventWithProducts.products)
             eventWithProducts.products.forEach { product ->
                 val textView = TextView(this)
                 textView.text = product.name
@@ -42,4 +45,20 @@ class LibraryActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun structureEvent(products: List<Product>): StructuredEvent {
+        var structuredEvent = StructuredEvent( mutableMapOf())
+        products.forEach { p ->
+            var meal = structuredEvent.days.getOrDefault(p.date, LightMeal(p.meal, mutableMapOf()))
+            var product = meal.products.getOrDefault(p.name, LightProduct(p.id, p.name, mutableListOf()))
+            var pictures = mutableListOf<String>()
+
+            product.pictures = pictures
+            meal.products[product.name] = product
+            structuredEvent.days[p.date] = meal
+        }
+
+        return structuredEvent
+    }
+
 }

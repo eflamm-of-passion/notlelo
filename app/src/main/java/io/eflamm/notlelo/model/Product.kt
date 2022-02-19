@@ -1,6 +1,7 @@
 package io.eflamm.notlelo.model
 
 import androidx.room.*
+import java.time.LocalDate
 import java.util.*
 
 @Entity
@@ -11,17 +12,17 @@ public class Product(
     val eventId: Long,
     val uuid: String,
     val name: String,
-    val date: Date,
+    val date: LocalDate,
     val meal: String,
-    //val pictures: List<Picture>
+//    val pictures: MutableList<String>
 ) {
     constructor(name: String, meal: String, eventId: Long): this(
         0,
         eventId,
         UUID.randomUUID().toString(),
         name,
-        Date(),
+        LocalDate.now(),
         meal,
-        //emptyList()
+//        mutableListOf()
     )
 }
