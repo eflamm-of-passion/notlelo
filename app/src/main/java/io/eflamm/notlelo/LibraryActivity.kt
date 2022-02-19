@@ -1,18 +1,13 @@
 package io.eflamm.notlelo
 
-import android.hardware.lights.Light
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import io.eflamm.notlelo.databinding.LibraryActivityBinding
 import io.eflamm.notlelo.model.*
 import io.eflamm.notlelo.viewmodel.EventViewModel
 import io.eflamm.notlelo.viewmodel.EventViewModelFactory
-import io.eflamm.notlelo.viewmodel.ProductViewModel
-import io.eflamm.notlelo.viewmodel.ProductViewModelFactory
-import java.util.*
 
 class LibraryActivity : AppCompatActivity() {
     private lateinit var binding: LibraryActivityBinding
@@ -20,17 +15,15 @@ class LibraryActivity : AppCompatActivity() {
     private val eventViewModel: EventViewModel by viewModels {
         EventViewModelFactory((application as NotleloApplication).eventRepository)
     }
-    private val productViewModel: ProductViewModel by viewModels {
-        ProductViewModelFactory((application as NotleloApplication).productRepository)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = LibraryActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         val bundle: Bundle? = this.intent.extras
         selectedEvent = bundle?.getSerializable(getString(R.string.selected_event_key)) as Event
+
+        binding = LibraryActivityBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         fillLibrary(selectedEvent.id)
     }

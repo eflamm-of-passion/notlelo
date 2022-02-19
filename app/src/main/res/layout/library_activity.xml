@@ -7,4 +7,13 @@
     android:background="#F4F4EF"
     tools:context=".LibraryActivity">
 
+    <io.eflamm.notlelo.views.HeaderView
+        app:titleText="@string/library_title"
+        android:id="@+id/libraryHeaderView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

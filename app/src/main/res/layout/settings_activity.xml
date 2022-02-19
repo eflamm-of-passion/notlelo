@@ -9,6 +9,7 @@
     >
 
     <io.eflamm.notlelo.views.HeaderView
+        app:titleText="@string/home_settings"
         android:id="@+id/settingsHeaderView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

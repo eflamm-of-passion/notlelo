@@ -8,25 +8,24 @@
 
 
     <TextView
-        android:id="@+id/textView9"
+        android:id="@+id/headerViewTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/caveat_brush"
-        android:text="@string/home_settings"
         android:textColor="@android:color/white"
         android:textSize="@dimen/title"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button10"
+        app:layout_constraintStart_toEndOf="@+id/headerViewBackButton"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/button10"
+        android:id="@+id/headerViewBackButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="retour"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:onClick="onClickBackButton"/>
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

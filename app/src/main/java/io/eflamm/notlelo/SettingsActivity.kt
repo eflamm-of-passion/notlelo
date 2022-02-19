@@ -23,7 +23,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Toast.makeText(this, "onCreate", Toast.LENGTH_LONG).show()
         super.onCreate(savedInstanceState)
         binding = SettingsActivityBinding.inflate(layoutInflater)
 
@@ -37,8 +36,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
      private fun loadEventListLayout() {
-         Toast.makeText(this, "fillDeleteEventLayout", Toast.LENGTH_LONG).show()
-
          val context = this
          eventViewModel.allEvents.observe(this){ events ->
              events.forEach {
