@@ -2,6 +2,6 @@
 <resources>
     <array name="preloaded_fonts" translatable="false">
         <item>@font/caveat_brush</item>
-        <item>@font/raleway_medium</item>
+<!--        <item>@font/raleway_medium</item>-->
     </array>
 </resources>

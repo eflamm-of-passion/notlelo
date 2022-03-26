@@ -1,57 +1,53 @@
 package io.eflamm.notlelo
 
 import android.os.Bundle
-import android.widget.TextView
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import io.eflamm.notlelo.databinding.LibraryActivityBinding
-import io.eflamm.notlelo.model.*
-import io.eflamm.notlelo.viewmodel.EventViewModel
-import io.eflamm.notlelo.viewmodel.EventViewModelFactory
+import androidx.activity.ComponentActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import io.eflamm.notlelo.ui.theme.NotleloTheme
+import io.eflamm.notlelo.views.HeaderView
 
-class LibraryActivity : AppCompatActivity() {
-    private lateinit var binding: LibraryActivityBinding
-    private lateinit var selectedEvent: Event
-    private val eventViewModel: EventViewModel by viewModels {
-        EventViewModelFactory((application as NotleloApplication).eventRepository)
-    }
-
+class LibraryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val bundle: Bundle? = this.intent.extras
-        selectedEvent = bundle?.getSerializable(getString(R.string.selected_event_key)) as Event
-
-        binding = LibraryActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        fillLibrary(selectedEvent.id)
+//        setContent {
+//            NotleloTheme {
+//                // A surface container using the 'background' color from the theme
+//                Surface(
+//                    modifier = Modifier.fillMaxSize(),
+//                    color = MaterialTheme.colors.background
+//                ) {
+//                    LibraryView()
+//                }
+//            }
+//        }
     }
+}
 
-    private fun fillLibrary(eventId: Long) {
-        eventViewModel.eventWithProducts(eventId).observe(this){ eventWithProducts ->
-            val se = structureEvent(eventWithProducts.products)
-            eventWithProducts.products.forEach { product ->
-                val textView = TextView(this)
-                textView.text = product.name
-                binding.root.addView(textView)
-            }
-        }
+@Composable
+fun LibraryView(navController: NavController){
+    Column(modifier = Modifier
+        .height(IntrinsicSize.Max)
+        .width(IntrinsicSize.Max)
+        .background(color = colorResource(id = R.color.white))) {
+        HeaderView(navController, stringResource(id = R.string.home_library))
     }
+}
 
-    private fun structureEvent(products: List<Product>): StructuredEvent {
-        var structuredEvent = StructuredEvent( mutableMapOf())
-        products.forEach { p ->
-            var meal = structuredEvent.days.getOrDefault(p.date, LightMeal(p.meal, mutableMapOf()))
-            var product = meal.products.getOrDefault(p.name, LightProduct(p.id, p.name, mutableListOf()))
-            var pictures = mutableListOf<String>()
-
-            product.pictures = pictures
-            meal.products[product.name] = product
-            structuredEvent.days[p.date] = meal
-        }
-
-        return structuredEvent
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    NotleloTheme {
+        LibraryView(rememberNavController())
     }
-
 }

@@ -16,7 +16,9 @@
         android:theme="@style/Theme.Notlelo">
         <activity
             android:name=".LibraryActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:label="@string/title_activity_library"
+            android:theme="@style/Theme.Notlelo" />
         <activity
             android:name=".CameraActivity"
             android:exported="false" />

@@ -8,7 +8,7 @@
     tools:context=".SettingsActivity"
     >
 
-    <io.eflamm.notlelo.views.HeaderView
+    <io.eflamm.notlelo.views.HeaderViewOld
         app:titleText="@string/home_settings"
         android:id="@+id/settingsHeaderView"
         android:layout_width="match_parent"
