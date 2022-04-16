@@ -82,6 +82,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun  fillEventListSpinner() {
+        // to delete
         val spinner = binding.selectHomeEvent
         val context = this
 
@@ -183,7 +184,7 @@ fun HomeView(navController: NavController, applicationTitle: String, events: Lis
                 .fillMaxHeight(0.9f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly) {
-//                SelectEvents(events = events)
+                SelectEvents(events = events)
                 for(link in links) {
                     LinkToPage(navController, link)
                 }
@@ -194,16 +195,38 @@ fun HomeView(navController: NavController, applicationTitle: String, events: Lis
 
 @Composable
 fun SelectEvents(events: List<Event>) {
+    // TODO display the text input when the list is empty
     Row {
-        Text(text = "events")
-        Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "events")
+        Text(text = "events") // FIXME is necessary ?
+        Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "events") // FIXME is necessary ?
         DropdownMenu(expanded = true, onDismissRequest = { /*TODO*/ }) {
-//            events.forEach { event ->
-//                DropdownMenuItem(onClick = { /*TODO*/ }) {
-//                    Text(text = event.name)
-//                }
-//            }
+            events.forEach { event ->
+                DropdownMenuItem(onClick = { /*TODO*/ }) {
+                    Text(text = event.name)
+                }
+            }
+        }
+        Button(onClick = {
+            /*TODO add the event*/
+        }) {
+            Text(text = "add")
+        }
+    }
+}
 
+@Composable
+fun AddEvent() {
+    Row {
+        TextField(value = "", placeholder = { Text(stringResource(id = R.string.home_event_input_placeholder)) }, onValueChange = { /*TODO*/})
+        Button(onClick = {
+            /*TODO add the event*/
+        }) {
+            Text(text = "add")
+        }
+        Button(onClick = {
+            /*TODO cancel the action*/
+        }) {
+            Text(text = "cancel")
         }
     }
 }
