@@ -15,6 +15,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -75,7 +77,7 @@ class HomeActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    NotleloApp(applicationTitle, events, links)
+                    NotleloApp(applicationTitle, events, links, eventViewModel)
                 }
             }
         }
@@ -100,50 +102,20 @@ class HomeActivity : AppCompatActivity() {
              }
         }
     }
-
-    fun onClickAddEventButton(view: View) {
-        this.toggleLayoutsVisibility()
-    }
-
-    fun onClickValidateAddEventButton(view: View) {
-        val inputText = this.findViewById<EditText>(R.id.text_input_home_camp)
-        val eventName = inputText.text.toString()
-        val newEvent = Event(eventName)
-
-        eventViewModel.insert(newEvent)
-
-        inputText.text.clear()
-        this.toggleLayoutsVisibility()
-    }
-
-    fun onClickCancelAddEventButton(view: View) {
-        val inputText = this.findViewById<EditText>(R.id.text_input_home_camp)
-        inputText.text.clear()
-        this.toggleLayoutsVisibility()
-    }
-
-    private fun toggleLayoutsVisibility() {
-        val layoutSelectEvent = this.findViewById<LinearLayout>(R.id.layout_select_camp)
-        val layoutAddEvent = this.findViewById<LinearLayout>(R.id.layout_create_camp)
-
-        layoutSelectEvent.visibility = when (View.VISIBLE == layoutSelectEvent.visibility) {
-            true -> View.GONE
-            false ->  View.VISIBLE
-        }
-        layoutAddEvent.visibility = when (View.VISIBLE == layoutAddEvent.visibility) {
-            true -> View.GONE
-            false ->  View.VISIBLE
-        }
-    }
 }
 
 @Composable
-fun NotleloApp(applicationTitle: String, events: List<Event>, links: List<Link>) {
+fun NotleloApp(
+    applicationTitle: String,
+    events: List<Event>,
+    links: List<Link>,
+    eventViewModel: EventViewModel
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
         composable(route = "home"){
-            HomeView(navController = navController, applicationTitle = applicationTitle, events = events, links = links)
+            HomeView(navController = navController, applicationTitle = applicationTitle, events = events, links = links, eventViewModel)
         }
         composable(route = "library"){
             LibraryView(navController = navController)
@@ -151,13 +123,19 @@ fun NotleloApp(applicationTitle: String, events: List<Event>, links: List<Link>)
         composable(route = "settings"){
             SettingsView(navController = navController)
         }
-        // TODO add the settings and camera
     }
 }
 
 
 @Composable
-fun HomeView(navController: NavController, applicationTitle: String, events: List<Event>, links: List<Link>) {
+fun HomeView(
+    navController: NavController,
+    applicationTitle: String,
+    events: List<Event>,
+    links: List<Link>,
+    eventViewModel: EventViewModel
+) {
+    val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
     Column(
         Modifier
             .fillMaxSize()
@@ -184,30 +162,35 @@ fun HomeView(navController: NavController, applicationTitle: String, events: Lis
                 .fillMaxHeight(0.9f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly) {
-                SelectEvents(events = events)
-                for(link in links) {
-                    LinkToPage(navController, link)
+                if(displayAddEvent) {
+                    AddEvent(setDisplayAddEvent, eventViewModel)
+                } else {
+                    SelectEvents(events = events, setDisplayAddEvent)
                 }
+                    for(link in links) {
+                        LinkToPage(navController, link)
+                    }
             }
         }
     }
 }
 
 @Composable
-fun SelectEvents(events: List<Event>) {
+fun SelectEvents(events: List<Event>, setDisplayAddEvent: (Boolean) -> Unit) {
     // TODO display the text input when the list is empty
     Row {
         Text(text = "events") // FIXME is necessary ?
         Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "events") // FIXME is necessary ?
-        DropdownMenu(expanded = true, onDismissRequest = { /*TODO*/ }) {
-            events.forEach { event ->
-                DropdownMenuItem(onClick = { /*TODO*/ }) {
-                    Text(text = event.name)
-                }
-            }
+        // FIXME the dropdown menu
+        DropdownMenu(expanded = false, onDismissRequest = { /*TODO*/ }) {
+//            events.forEach { event ->
+//                DropdownMenuItem(onClick = { /*TODO*/ }) {
+//                    Text(text = event.name)
+//                }
+//            }
         }
         Button(onClick = {
-            /*TODO add the event*/
+            setDisplayAddEvent(true)
         }) {
             Text(text = "add")
         }
@@ -215,16 +198,23 @@ fun SelectEvents(events: List<Event>) {
 }
 
 @Composable
-fun AddEvent() {
+fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: EventViewModel) {
+    val (eventName, setEventName) = remember { mutableStateOf("") }
+
     Row {
-        TextField(value = "", placeholder = { Text(stringResource(id = R.string.home_event_input_placeholder)) }, onValueChange = { /*TODO*/})
+        TextField(value = eventName,
+            colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray)),
+            placeholder = { Text(stringResource(id = R.string.home_event_input_placeholder)) },
+            onValueChange = { setEventName(it)})
         Button(onClick = {
-            /*TODO add the event*/
+            val newEvent = Event(eventName)
+            eventViewModel.insert(newEvent)
+            setDisplayAddEvent(false)
         }) {
             Text(text = "add")
         }
         Button(onClick = {
-            /*TODO cancel the action*/
+            setDisplayAddEvent(false)
         }) {
             Text(text = "cancel")
         }
@@ -233,11 +223,13 @@ fun AddEvent() {
 
 @Composable
 fun LinkToPage(navigateController: NavController, link: Link) {
+    Row() {
        Button(onClick = {
            navigateController.navigate(link.route)
        }) {
            Text(text = link.title)
        }
+    }
 }
 
 @Preview(showBackground = true)
@@ -252,6 +244,6 @@ fun PreviewHeader() {
         Link(stringResource(id = R.string.home_settings), "settings")
     )
     NotleloTheme {
-        HomeView(rememberNavController(),"notlelo", events = events, links= links)
+        HomeView(rememberNavController(), "notlelo", events = events, links= links, null)
     }
 }
