@@ -1,26 +1,26 @@
 package io.eflamm.notlelo
 
 import android.os.Bundle
-import android.view.View
-import android.widget.AdapterView
-import android.widget.EditText
-import android.widget.LinearLayout
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -28,7 +28,9 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,18 +39,18 @@ import io.eflamm.notlelo.databinding.HomeActivityBinding
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.Link
 import io.eflamm.notlelo.ui.theme.NotleloTheme
-import io.eflamm.notlelo.viewmodel.EventViewModel
-import io.eflamm.notlelo.viewmodel.EventViewModelFactory
-import io.eflamm.notlelo.views.EventSpinnerAdapter
+import io.eflamm.notlelo.viewmodel.IEventViewModel
+import io.eflamm.notlelo.viewmodel.MockEventViewModel
 
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: HomeActivityBinding
-    private var events: List<Event> = emptyList()
+//    private var events: List<Event> = emptyList()
     private lateinit var selectedEvent: Event
-    private val eventViewModel: EventViewModel by viewModels {
-        EventViewModelFactory((application as NotleloApplication).eventRepository)
-    }
+//    private val eventViewModel: EventViewModel by viewModels {
+//        EventViewModelFactory((application as NotleloApplication).eventRepository)
+//    }
+    private val eventViewModel: MockEventViewModel = MockEventViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         /** TODO check if there are at least one camp, otherwise
@@ -57,12 +59,10 @@ class HomeActivity : AppCompatActivity() {
          **/
         super.onCreate(savedInstanceState)
 
-        binding = HomeActivityBinding.inflate(layoutInflater)
 //        setContentView(binding.root)
 
-        fillEventListSpinner()
-
         val applicationTitle = getString(R.string.lowercase_app_name)
+        var events: List<Event> = emptyList()
         eventViewModel.allEvents.observe(this) { events = it }
         val links: List<Link> = listOf(
             Link(getString(R.string.home_camera), "camera"),
@@ -82,26 +82,6 @@ class HomeActivity : AppCompatActivity() {
             }
         }
     }
-
-    private fun  fillEventListSpinner() {
-        // to delete
-        val spinner = binding.selectHomeEvent
-        val context = this
-
-         eventViewModel.allEvents.observe(context) { events ->
-            val adapter = EventSpinnerAdapter(this, R.layout.spinner_item, events)
-            spinner.adapter = adapter
-             spinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
-                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    // not yet implemented
-                 }
-
-                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                     selectedEvent = adapter.getItem(position)
-                 }
-             }
-        }
-    }
 }
 
 @Composable
@@ -109,7 +89,7 @@ fun NotleloApp(
     applicationTitle: String,
     events: List<Event>,
     links: List<Link>,
-    eventViewModel: EventViewModel
+    eventViewModel: IEventViewModel
 ) {
     val navController = rememberNavController()
 
@@ -133,7 +113,7 @@ fun HomeView(
     applicationTitle: String,
     events: List<Event>,
     links: List<Link>,
-    eventViewModel: EventViewModel
+    eventViewModel: IEventViewModel
 ) {
     val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
     Column(
@@ -178,27 +158,63 @@ fun HomeView(
 @Composable
 fun SelectEvents(events: List<Event>, setDisplayAddEvent: (Boolean) -> Unit) {
     // TODO display the text input when the list is empty
-    Row {
-        Text(text = "events") // FIXME is necessary ?
-        Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "events") // FIXME is necessary ?
+    val (isExpanded, setExpanded) = remember { mutableStateOf(false) }
+    val (selectedEvent, setSelectedEvent) = remember { mutableStateOf("hello") }
+    val l = listOf<String>("hello", "world")
+    val (textfieldSize, setTextfieldSize) = remember { mutableStateOf(Size.Zero) }
+
+    Row() {
+        val icon = if (isExpanded)
+            Icons.Filled.ArrowDropUp
+        else
+            Icons.Filled.ArrowDropDown
+
+        OutlinedTextField(
+            value = selectedEvent,
+            onValueChange = { setSelectedEvent(it) },
+            modifier = Modifier
+                .width(300.dp)
+                .onGloballyPositioned { coordinates ->
+                    //This value is used to assign to the DropDown the same width
+                    setTextfieldSize(coordinates.size.toSize())
+                },
+            label = {Text("Label")},
+            trailingIcon = {
+                Icon(icon,"contentDescription", Modifier.clickable { setExpanded(false) }, tint = colorResource(id = android.R.color.darker_gray))
+            },
+            colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
+        )
+
         // FIXME the dropdown menu
-        DropdownMenu(expanded = false, onDismissRequest = { /*TODO*/ }) {
-//            events.forEach { event ->
-//                DropdownMenuItem(onClick = { /*TODO*/ }) {
-//                    Text(text = event.name)
-//                }
-//            }
+        DropdownMenu(
+            expanded = isExpanded,
+            onDismissRequest = { setExpanded(false) },
+            modifier = Modifier
+                .width(with(LocalDensity.current){textfieldSize.width.toDp()})
+        ) {
+            l.forEach { label ->
+                DropdownMenuItem(onClick = {
+                    setSelectedEvent(label)
+                }) {
+                    Text(text = label, color = colorResource(id = android.R.color.black))
+                }
+            }
         }
-        Button(onClick = {
-            setDisplayAddEvent(true)
-        }) {
-            Text(text = "add")
+//        Button(onClick = {
+//            setDisplayAddEvent(true)
+//        }) {
+//            Text(text = "add")
+//        }
+    }
+    Row() {
+        l.forEach { s ->
+            Text(text = s, color = colorResource(id = android.R.color.black))
         }
     }
 }
 
 @Composable
-fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: EventViewModel) {
+fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewModel) {
     val (eventName, setEventName) = remember { mutableStateOf("") }
 
     Row {
@@ -243,7 +259,8 @@ fun PreviewHeader() {
         Link(stringResource(id = R.string.home_library), "library"),
         Link(stringResource(id = R.string.home_settings), "settings")
     )
+    val eventViewModel: IEventViewModel = MockEventViewModel()
     NotleloTheme {
-        HomeView(rememberNavController(), "notlelo", events = events, links= links, null)
+        HomeView(rememberNavController(), "notlelo", events = events, links= links, eventViewModel)
     }
 }
