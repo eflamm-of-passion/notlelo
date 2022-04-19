@@ -2,6 +2,7 @@ package io.eflamm.notlelo
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -35,35 +37,24 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.eflamm.notlelo.databinding.HomeActivityBinding
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.Link
 import io.eflamm.notlelo.ui.theme.NotleloTheme
+import io.eflamm.notlelo.viewmodel.EventViewModel
+import io.eflamm.notlelo.viewmodel.EventViewModelFactory
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 
 class HomeActivity : AppCompatActivity() {
 
-    private lateinit var binding: HomeActivityBinding
-//    private var events: List<Event> = emptyList()
-    private lateinit var selectedEvent: Event
-//    private val eventViewModel: EventViewModel by viewModels {
-//        EventViewModelFactory((application as NotleloApplication).eventRepository)
-//    }
-    private val eventViewModel: MockEventViewModel = MockEventViewModel()
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        /** TODO check if there are at least one camp, otherwise
-            display add event layout
-            grey the buttons
-         **/
         super.onCreate(savedInstanceState)
 
-//        setContentView(binding.root)
+        val eventViewModel: EventViewModel by viewModels {
+            EventViewModelFactory((application as NotleloApplication).eventRepository)
+        }
 
         val applicationTitle = getString(R.string.lowercase_app_name)
-        var events: List<Event> = emptyList()
-        eventViewModel.allEvents.observe(this) { events = it }
         val links: List<Link> = listOf(
             Link(getString(R.string.home_camera), "camera"),
             Link(getString(R.string.home_library), "library"),
@@ -77,7 +68,7 @@ class HomeActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    NotleloApp(applicationTitle, events, links, eventViewModel)
+                    NotleloApp(applicationTitle, links, eventViewModel)
                 }
             }
         }
@@ -87,7 +78,6 @@ class HomeActivity : AppCompatActivity() {
 @Composable
 fun NotleloApp(
     applicationTitle: String,
-    events: List<Event>,
     links: List<Link>,
     eventViewModel: IEventViewModel
 ) {
@@ -95,7 +85,7 @@ fun NotleloApp(
 
     NavHost(navController = navController, startDestination = "home") {
         composable(route = "home"){
-            HomeView(navController = navController, applicationTitle = applicationTitle, events = events, links = links, eventViewModel)
+            HomeView(navController = navController, applicationTitle = applicationTitle, links = links, eventViewModel)
         }
         composable(route = "library"){
             LibraryView(navController = navController)
@@ -111,11 +101,14 @@ fun NotleloApp(
 fun HomeView(
     navController: NavController,
     applicationTitle: String,
-    events: List<Event>,
     links: List<Link>,
     eventViewModel: IEventViewModel
 ) {
     val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
+    val (events, setEvents) = remember { mutableStateOf(emptyList<Event>()) }
+
+    eventViewModel.allEvents.observeAsState().value?.let { setEvents(it) }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -142,28 +135,32 @@ fun HomeView(
                 .fillMaxHeight(0.9f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly) {
-                if(displayAddEvent) {
+
+                if(displayAddEvent || events.isEmpty()) {
                     AddEvent(setDisplayAddEvent, eventViewModel)
                 } else {
                     SelectEvents(events = events, setDisplayAddEvent)
                 }
-                    for(link in links) {
-                        LinkToPage(navController, link)
-                    }
+
+                for(link in links) {
+                    LinkToPage(navController, link)
+                }
+
             }
         }
     }
 }
 
 @Composable
-fun SelectEvents(events: List<Event>, setDisplayAddEvent: (Boolean) -> Unit) {
-    // TODO display the text input when the list is empty
+fun SelectEvents(
+    events: List<Event>,
+    setDisplayAddEvent: (Boolean) -> Unit,
+) {
     val (isExpanded, setExpanded) = remember { mutableStateOf(false) }
-    val (selectedEvent, setSelectedEvent) = remember { mutableStateOf("hello") }
-    val l = listOf<String>("hello", "world")
-    val (textfieldSize, setTextfieldSize) = remember { mutableStateOf(Size.Zero) }
+    val (selectedEvent, setSelectedEvent) = remember { mutableStateOf(events[0].name) }
+    val (textFieldSize, setTextFieldSize) = remember { mutableStateOf(Size.Zero) }
 
-    Row() {
+    Row {
         val icon = if (isExpanded)
             Icons.Filled.ArrowDropUp
         else
@@ -176,39 +173,35 @@ fun SelectEvents(events: List<Event>, setDisplayAddEvent: (Boolean) -> Unit) {
                 .width(300.dp)
                 .onGloballyPositioned { coordinates ->
                     //This value is used to assign to the DropDown the same width
-                    setTextfieldSize(coordinates.size.toSize())
+                    setTextFieldSize(coordinates.size.toSize())
                 },
             label = {Text("Label")},
             trailingIcon = {
-                Icon(icon,"contentDescription", Modifier.clickable { setExpanded(false) }, tint = colorResource(id = android.R.color.darker_gray))
+                Icon(icon,"contentDescription", Modifier.clickable { setExpanded(!isExpanded) }, tint = colorResource(id = android.R.color.darker_gray))
             },
             colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
         )
 
-        // FIXME the dropdown menu
         DropdownMenu(
             expanded = isExpanded,
             onDismissRequest = { setExpanded(false) },
             modifier = Modifier
-                .width(with(LocalDensity.current){textfieldSize.width.toDp()})
+                .width(with(LocalDensity.current){textFieldSize.width.toDp()})
         ) {
-            l.forEach { label ->
+            events.forEach { event ->
                 DropdownMenuItem(onClick = {
-                    setSelectedEvent(label)
+                    // TODO set in the ui state holder, or in the view model
+                    setSelectedEvent(event.name)
+                    setExpanded(false)
                 }) {
-                    Text(text = label, color = colorResource(id = android.R.color.black))
+                    Text(text = event.name, color = colorResource(id = android.R.color.white))
                 }
             }
         }
-//        Button(onClick = {
-//            setDisplayAddEvent(true)
-//        }) {
-//            Text(text = "add")
-//        }
-    }
-    Row() {
-        l.forEach { s ->
-            Text(text = s, color = colorResource(id = android.R.color.black))
+        Button(onClick = {
+            setDisplayAddEvent(true)
+        }) {
+            Text(text = "add")
         }
     }
 }
@@ -223,9 +216,11 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewMo
             placeholder = { Text(stringResource(id = R.string.home_event_input_placeholder)) },
             onValueChange = { setEventName(it)})
         Button(onClick = {
+            // TODO set the added event as the selected event
             val newEvent = Event(eventName)
-            eventViewModel.insert(newEvent)
-            setDisplayAddEvent(false)
+            eventViewModel.insert(newEvent).invokeOnCompletion {
+                setDisplayAddEvent(false)
+            }
         }) {
             Text(text = "add")
         }
@@ -239,7 +234,7 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewMo
 
 @Composable
 fun LinkToPage(navigateController: NavController, link: Link) {
-    Row() {
+    Row {
        Button(onClick = {
            navigateController.navigate(link.route)
        }) {
@@ -251,9 +246,6 @@ fun LinkToPage(navigateController: NavController, link: Link) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewHeader() {
-    val event1 = Event(name = "Camp bleu")
-    val event2 = Event(name = "Camp rouge")
-    val events = listOf(event1, event2)
     val links: List<Link> = listOf(
         Link(stringResource(id = R.string.home_camera), "camera"),
         Link(stringResource(id = R.string.home_library), "library"),
@@ -261,6 +253,6 @@ fun PreviewHeader() {
     )
     val eventViewModel: IEventViewModel = MockEventViewModel()
     NotleloTheme {
-        HomeView(rememberNavController(), "notlelo", events = events, links= links, eventViewModel)
+        HomeView(rememberNavController(), "notlelo", links= links, eventViewModel)
     }
 }
