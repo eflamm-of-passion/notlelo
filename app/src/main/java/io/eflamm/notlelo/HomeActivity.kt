@@ -139,7 +139,7 @@ fun HomeView(
                 if(displayAddEvent || events.isEmpty()) {
                     AddEvent(setDisplayAddEvent, eventViewModel)
                 } else {
-                    SelectEvents(events = events, setDisplayAddEvent)
+                    SelectEvents(events = events, setDisplayAddEvent, eventViewModel)
                 }
 
                 for(link in links) {
@@ -155,10 +155,27 @@ fun HomeView(
 fun SelectEvents(
     events: List<Event>,
     setDisplayAddEvent: (Boolean) -> Unit,
+    eventViewModel: IEventViewModel
 ) {
     val (isExpanded, setExpanded) = remember { mutableStateOf(false) }
-    val (selectedEvent, setSelectedEvent) = remember { mutableStateOf(events[0].name) }
+    val (selectedEventName, setSelectedEventName) = remember { mutableStateOf(events[0].name) }
     val (textFieldSize, setTextFieldSize) = remember { mutableStateOf(Size.Zero) }
+
+    val selectedEventFromUiState: Event? = eventViewModel.uiState.selectedEvent
+    selectedEventFromUiState.let {
+        // if an event was selected previously
+        // FIXME normally I shouldn't have to check it here, every logic should be handled in the view model
+        val hasEventInList = events.any { e -> e.name == it?.name }
+        if(hasEventInList) {
+            setSelectedEventName(selectedEventFromUiState?.name!!)
+        }
+    }
+
+    fun onSelectEvent(event: Event) {
+        setSelectedEventName(event.name)
+        eventViewModel.updateSelectedEvent(event)
+
+    }
 
     Row {
         val icon = if (isExpanded)
@@ -167,8 +184,11 @@ fun SelectEvents(
             Icons.Filled.ArrowDropDown
 
         OutlinedTextField(
-            value = selectedEvent,
-            onValueChange = { setSelectedEvent(it) },
+            value = selectedEventName,
+            onValueChange = {
+                // maybe do something here
+                            // but I should just change the type of input
+            },
             modifier = Modifier
                 .width(300.dp)
                 .onGloballyPositioned { coordinates ->
@@ -190,8 +210,8 @@ fun SelectEvents(
         ) {
             events.forEach { event ->
                 DropdownMenuItem(onClick = {
-                    // TODO set in the ui state holder, or in the view model
-                    setSelectedEvent(event.name)
+                    setSelectedEventName(event.name)
+                    onSelectEvent(event)
                     setExpanded(false)
                 }) {
                     Text(text = event.name, color = colorResource(id = android.R.color.white))
