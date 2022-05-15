@@ -84,6 +84,9 @@ fun NotleloApp(
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
+        composable(route = "camera"){
+            CameraView(navController = navController)
+        }
         composable(route = "home"){
             HomeView(navController = navController, applicationTitle = applicationTitle, links = links, eventViewModel)
         }

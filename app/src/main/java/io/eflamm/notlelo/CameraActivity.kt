@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -18,21 +19,39 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.navigation.NavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import io.eflamm.notlelo.databinding.CameraActivityBinding
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.Product
-import io.eflamm.notlelo.viewmodel.EventViewModel
-import io.eflamm.notlelo.viewmodel.EventViewModelFactory
 import io.eflamm.notlelo.viewmodel.ProductViewModel
 import io.eflamm.notlelo.viewmodel.ProductViewModelFactory
-import java.io.*
+import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 // source : https://developer.android.com/codelabs/camerax-getting-started#0
@@ -52,8 +71,6 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = CameraActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
          if(allPermissionsGranted()) {
             startCamera()
@@ -70,15 +87,8 @@ class CameraActivity : AppCompatActivity() {
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
 
-        fillMealSpinner()
     }
 
-    private fun fillMealSpinner() {
-        val spinner = this.findViewById<Spinner>(R.id.meal_spinner)
-        val mealsAvailable = resources.getStringArray(R.array.camera_meals)
-        val adapter = ArrayAdapter(this, R.layout.spinner_item, mealsAvailable)
-        spinner.adapter = adapter
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -232,9 +242,6 @@ class CameraActivity : AppCompatActivity() {
 
 
 
-
-
-
     fun zipAll(inputFilePath: String, outputFilePath: String) {
         val textFile1 = StorageUtils.setTextInStorage(filesDir, this, "notlelo", "camp1", "test1.txt", "hello world")
         val textFile2 = StorageUtils.setTextInStorage(filesDir, this, "notlelo", "camp2", "test2.txt", "hello world")
@@ -278,4 +285,121 @@ class CameraActivity : AppCompatActivity() {
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
+}
+
+
+
+@Composable
+fun CameraView(navController: NavController) {
+    Column(modifier = Modifier
+        .height(IntrinsicSize.Max)
+        .width(IntrinsicSize.Max)
+        .background(color = colorResource(id = R.color.white))) {
+        Box() {
+            CameraPermission()
+            CameraPreview(
+                Modifier
+                    .height(IntrinsicSize.Max)
+                    .width(IntrinsicSize.Max))
+            Box() {
+                Row() {
+                    Button(onClick = { navController.navigateUp() }) {
+                        Text(text = stringResource(id = R.string.camera_cancel), color = colorResource(id = R.color.black))
+                    }
+                    Button(onClick = { /*TODO*/ }) {
+                        Text(text = "take picture", color = colorResource(id = R.color.black))
+                    }
+                    Button(onClick = { /*TODO*/ }) {
+                        Text(text = stringResource(id = R.string.camera_validate), color = colorResource(id = R.color.black))
+                    }
+                }
+            }
+        }
+    }
+}
+
+val Context.executor: Executor
+    get() = ContextCompat.getMainExecutor(this)
+
+suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
+    ProcessCameraProvider.getInstance(this).also { future ->
+        future.addListener({
+            continuation.resume(future.get())
+        }, executor)
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun CameraPermission() {
+    val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+
+    when (cameraPermissionState.status) {
+        // If the camera permission is granted, then show screen with the feature enabled
+        PermissionStatus.Granted -> {
+            Text("Camera permission granted")
+        }
+        is PermissionStatus.Denied -> {
+            Column {
+                val textToShow = if (cameraPermissionState.status.shouldShowRationale) {
+                    // If the user has denied the permission but the rationale can be shown,
+                    // then gently explain why the app requires this permission
+                    "The camera is important for this app. Please grant the permission."
+                } else {
+                    // If it's the first time the user lands on this feature, or the user
+                    // doesn't want to be asked again for this permission, explain that the
+                    // permission is required
+                    "Camera permission required for this feature to be available. " +
+                        "Please grant the permission"
+                }
+                Text(textToShow)
+                Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
+                    Text(text = "Request permission")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CameraPreview(
+    modifier: Modifier = Modifier,
+    scaleType: PreviewView.ScaleType = PreviewView.ScaleType.FILL_CENTER,
+    cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val lifeCycleOwner = LocalLifecycleOwner.current
+    
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            val previewView = PreviewView(context).apply {
+                this.scaleType = scaleType
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            }
+
+            val previewUseCase = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+
+            coroutineScope.launch {
+                val cameraProvider = context.getCameraProvider()
+                try {
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(
+                        lifeCycleOwner, cameraSelector, previewUseCase
+                    )
+                } catch (ex: Exception) {
+                    Log.e("CameraPreview", "Use case binding failed", ex)
+                }
+            }
+
+            previewView
+        }
+    )
 }

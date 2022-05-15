@@ -105,4 +105,6 @@ dependencies {
 
     implementation "com.google.code.gson:gson:$rootProject.gson"
 
+    implementation "com.google.accompanist:accompanist-permissions:$rootProject.accompanistVersion"
+
 }
