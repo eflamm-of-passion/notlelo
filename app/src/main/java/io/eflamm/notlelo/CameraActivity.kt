@@ -25,6 +25,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
@@ -292,17 +293,15 @@ class CameraActivity : AppCompatActivity() {
 @Composable
 fun CameraView(navController: NavController) {
     Column(modifier = Modifier
-        .height(IntrinsicSize.Max)
-        .width(IntrinsicSize.Max)
+        .fillMaxSize()
         .background(color = colorResource(id = R.color.white))) {
         Box() {
-            CameraPermission()
-            CameraPreview(
-                Modifier
-                    .height(IntrinsicSize.Max)
-                    .width(IntrinsicSize.Max))
-            Box() {
-                Row() {
+            CameraPreview(Modifier.fillMaxSize())
+            Box(Modifier.fillMaxSize()) {
+                Row(Modifier.align(Alignment.Center)) {
+                    CameraPermission()
+                }
+                Row(Modifier.align(Alignment.BottomCenter)) {
                     Button(onClick = { navController.navigateUp() }) {
                         Text(text = stringResource(id = R.string.camera_cancel), color = colorResource(id = R.color.black))
                     }
@@ -336,9 +335,6 @@ fun CameraPermission() {
 
     when (cameraPermissionState.status) {
         // If the camera permission is granted, then show screen with the feature enabled
-        PermissionStatus.Granted -> {
-            Text("Camera permission granted")
-        }
         is PermissionStatus.Denied -> {
             Column {
                 val textToShow = if (cameraPermissionState.status.shouldShowRationale) {
