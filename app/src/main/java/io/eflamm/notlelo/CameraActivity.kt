@@ -23,13 +23,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -292,10 +297,12 @@ class CameraActivity : AppCompatActivity() {
 
 @Composable
 fun CameraView(navController: NavController) {
+    val (isDisplayingSaveProductModal, setDisplayingSaveProductModal) = remember { mutableStateOf(false) }
+
     Column(modifier = Modifier
         .fillMaxSize()
         .background(color = colorResource(id = R.color.white))) {
-        Box() {
+        Box {
             CameraPreview(Modifier.fillMaxSize())
             Box(Modifier.fillMaxSize()) {
                 Row(Modifier.align(Alignment.Center)) {
@@ -308,10 +315,13 @@ fun CameraView(navController: NavController) {
                     Button(onClick = { /*TODO*/ }) {
                         Text(text = "take picture", color = colorResource(id = R.color.black))
                     }
-                    Button(onClick = { /*TODO*/ }) {
+                    Button(onClick = { setDisplayingSaveProductModal(true) }) {
                         Text(text = stringResource(id = R.string.camera_validate), color = colorResource(id = R.color.black))
                     }
                 }
+            }
+            if(isDisplayingSaveProductModal) {
+                SaveProductModal(setDisplayingSaveProductModal)
             }
         }
     }
@@ -351,6 +361,54 @@ fun CameraPermission() {
                 Text(textToShow)
                 Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
                     Text(text = "Request permission")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+    ) {
+        Column(modifier = Modifier
+            .align(Alignment.Center)
+            .width(400.dp)
+            .height(200.dp)
+            .background(color = colorResource(id = R.color.white))) {
+            Row {
+                Text(text = stringResource(id = R.string.camera_product_input_label), color = colorResource(
+                    id = R.color.secondary
+                ))
+            }
+            Row {
+                TextField(
+                    value = "",
+                    onValueChange = {/* TODO */ },
+                    modifier = Modifier.width(300.dp),
+//                    label = {Text(stringResource(id = R.string.camera_product_input_label))},
+                    colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
+                )
+            }
+            Row {
+                Text(text = stringResource(id = R.string.camera_meal_input_label), color = colorResource(
+                    id = R.color.secondary
+                ))
+            }
+            Row {
+                /* TODO list of meals*/
+            }
+            Row {
+                Column {
+                    Button(onClick = { setDisplayingSaveProductModal(false) }) {
+                        Text(text = stringResource(id = R.string.camera_cancel), color = colorResource(id = R.color.black))
+                    }
+                }
+                Column {
+                    Button(onClick = { setDisplayingSaveProductModal(false) }) {
+                        Text(text = stringResource(id = R.string.camera_validate), color = colorResource(id = R.color.black))
+                    }
                 }
             }
         }
