@@ -3,20 +3,17 @@ package io.eflamm.notlelo
 import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
-import android.widget.*
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -26,17 +23,18 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
@@ -44,18 +42,13 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import io.eflamm.notlelo.databinding.CameraActivityBinding
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.viewmodel.ProductViewModel
 import io.eflamm.notlelo.viewmodel.ProductViewModelFactory
-import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -64,11 +57,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class CameraActivity : AppCompatActivity() {
 
-    private lateinit var binding: CameraActivityBinding
-    private var imageCapture: ImageCapture? = null
-    private var previewList: MutableList<File> = mutableListOf()
     private lateinit var outputDirectory: File
-    private lateinit var cameraExecutor: ExecutorService
     private val _authority = "io.eflamm.notlelo.fileprovider"
     private lateinit var selectedEvent: Event
     private val productViewModel: ProductViewModel by viewModels {
@@ -78,54 +67,13 @@ class CameraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-         if(allPermissionsGranted()) {
-            startCamera()
-         } else {
-             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
-         }
 
-        val bundle: Bundle? = this.intent.extras
-        selectedEvent = bundle?.getSerializable(getString(R.string.selected_event_key)) as Event
-
-        val cameraCaptureButton = binding.buttonCameraCapture
-        cameraCaptureButton.setOnClickListener { takePhoto() }
         // TODO give the file architecture
         outputDirectory = getOutputDirectory()
-        cameraExecutor = Executors.newSingleThreadExecutor()
 
     }
 
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode == REQUEST_CODE_PERMISSIONS) {
-            if(allPermissionsGranted()) {
-                startCamera()
-            } else {
-                Toast.makeText(this, "Permission not granted for the camera.", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
-    }
-
-    fun onClickSaveProduct(view: View) {
-        val saveProductModal = this.findViewById<LinearLayout>(R.id.layout_camera_save_product)
-        saveProductModal.visibility = View.VISIBLE
-    }
-
-    fun onClickBackButton (view : View) {
-        finish()
-    }
-
-    fun onClickEmptyPreviews (view: View) {
-        val previewListLayout = this.findViewById<LinearLayout>(R.id.previewList)
-        previewListLayout.removeAllViews()
-        StorageUtils.clearCache(applicationContext) // delete the pictures in the cache
-    }
 
     fun onClickCancelSaveProduct(view: View) {
         // TODO clean the fields
@@ -156,52 +104,8 @@ class CameraActivity : AppCompatActivity() {
         modal.visibility = View.GONE
     }
 
-    private fun takePhoto() {
-        val imageCapture = imageCapture ?: return
 
-//        val appFolder = resources.getString(R.string.app_name)
-        val cacheFolder = applicationContext.cacheDir.absolutePath
-//        val dayFolder = "2021-12-2"
-//        val mealFolder = "dinner"
-//        val productFolder = "chocolate"
-//        val folders = "$cacheFolder/$dayFolder/$mealFolder/$productFolder"
-//        val photoOutputDirectory = createPhotoFolder(folders)
-        val photoFile = File(
-            cacheFolder,
-            SimpleDateFormat(FILENAME_FORMAT, Locale.FRANCE).format(System.currentTimeMillis()) + ".jpg"
-        )
 
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-        imageCapture.takePicture(
-            outputOptions, ContextCompat.getMainExecutor(this), object: ImageCapture.OnImageSavedCallback {
-                override fun onError(e: ImageCaptureException) {
-                    Log.e("takePhoto", "Photo capture failed: ${e.message}", e)
-                }
-
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    val savedUri = Uri.fromFile(photoFile)
-                    val msg = "Photo captured succeeded: $savedUri"
-                    previewList.add(photoFile)
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
-                    Log.d("takePhoto", msg)
-                    displayPreviewList()
-                }
-            }
-        )
-    }
-
-    private fun displayPreviewList() {
-        // TODO refine this method
-        val previewListLayout = this.findViewById<LinearLayout>(R.id.previewList)
-        previewListLayout.removeAllViews()
-        for(previewPhoto in previewList) {
-            val myBitmap = BitmapFactory.decodeFile(previewPhoto.getAbsolutePath())
-            val imageView = ImageView(this)
-            imageView.setImageBitmap(myBitmap)
-            previewListLayout.addView(imageView)
-        }
-    }
 
     private fun createPhotoFolder(folders: String): File {
         val mediaDir = externalMediaDirs.firstOrNull()?.let {
@@ -210,36 +114,7 @@ class CameraActivity : AppCompatActivity() {
         return if (mediaDir != null && mediaDir.exists()) mediaDir else filesDir
     }
 
-    private fun startCamera() {
-        val cameraProviderFuture =  ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener(Runnable {
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            val viewFinder = this.findViewById<PreviewView>(R.id.viewFinder)
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(viewFinder.surfaceProvider)
-            }
-            imageCapture = ImageCapture.Builder().build()
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
-            } catch (e: Exception) {
-                Log.e("startCamera", "Use case binding failed", e)
-            }
-        }, ContextCompat.getMainExecutor(this))
-
-    }
-
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
-    }
 
 
 
@@ -293,26 +168,27 @@ class CameraActivity : AppCompatActivity() {
     }
 }
 
-
-
 @Composable
 fun CameraView(navController: NavController) {
+    val context = LocalContext.current
     val (isDisplayingSaveProductModal, setDisplayingSaveProductModal) = remember { mutableStateOf(false) }
+    val outputDirectory = File(LocalContext.current.cacheDir.absolutePath)
+    val imageCapture: ImageCapture = remember { ImageCapture.Builder().build() }
 
     Column(modifier = Modifier
         .fillMaxSize()
         .background(color = colorResource(id = R.color.white))) {
         Box {
-            CameraPreview(Modifier.fillMaxSize())
+            CameraPreview(imageCapture)
             Box(Modifier.fillMaxSize()) {
                 Row(Modifier.align(Alignment.Center)) {
-                    CameraPermission()
+                    AskCameraPermissionRationale()
                 }
                 Row(Modifier.align(Alignment.BottomCenter)) {
                     Button(onClick = { navController.navigateUp() }) {
                         Text(text = stringResource(id = R.string.camera_cancel), color = colorResource(id = R.color.black))
                     }
-                    Button(onClick = { /*TODO*/ }) {
+                    Button(onClick = { takePhoto(context, imageCapture) }) {
                         Text(text = "take picture", color = colorResource(id = R.color.black))
                     }
                     Button(onClick = { setDisplayingSaveProductModal(true) }) {
@@ -327,43 +203,34 @@ fun CameraView(navController: NavController) {
     }
 }
 
-val Context.executor: Executor
-    get() = ContextCompat.getMainExecutor(this)
 
-suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
-    ProcessCameraProvider.getInstance(this).also { future ->
-        future.addListener({
-            continuation.resume(future.get())
-        }, executor)
-    }
-}
 
-@OptIn(ExperimentalPermissionsApi::class)
+
+
 @Composable
-fun CameraPermission() {
-    val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+fun CameraPreview(imageCapture: ImageCapture) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val preview = Preview.Builder().build()
+    val cameraSelector = CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
+    val previewView = remember {
+        PreviewView(context)
+    }
 
-    when (cameraPermissionState.status) {
-        // If the camera permission is granted, then show screen with the feature enabled
-        is PermissionStatus.Denied -> {
-            Column {
-                val textToShow = if (cameraPermissionState.status.shouldShowRationale) {
-                    // If the user has denied the permission but the rationale can be shown,
-                    // then gently explain why the app requires this permission
-                    "The camera is important for this app. Please grant the permission."
-                } else {
-                    // If it's the first time the user lands on this feature, or the user
-                    // doesn't want to be asked again for this permission, explain that the
-                    // permission is required
-                    "Camera permission required for this feature to be available. " +
-                        "Please grant the permission"
-                }
-                Text(textToShow)
-                Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
-                    Text(text = "Request permission")
-                }
-            }
-        }
+    LaunchedEffect(CameraSelector.LENS_FACING_BACK) {
+        val cameraProvider = context.getCameraProvider()
+        cameraProvider.unbindAll()
+        cameraProvider.bindToLifecycle(
+            lifecycleOwner,
+            cameraSelector,
+            preview,
+            imageCapture
+        )
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        AndroidView({previewView}, Modifier.fillMaxSize()){}
     }
 }
 
@@ -415,45 +282,70 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit) {
     }
 }
 
+
+
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun CameraPreview(
-    modifier: Modifier = Modifier,
-    scaleType: PreviewView.ScaleType = PreviewView.ScaleType.FILL_CENTER,
-    cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-) {
-    val coroutineScope = rememberCoroutineScope()
-    val lifeCycleOwner = LocalLifecycleOwner.current
-    
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            val previewView = PreviewView(context).apply {
-                this.scaleType = scaleType
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-            }
+fun AskCameraPermissionRationale() {
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
-            val previewUseCase = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
+    when(cameraPermissionState.status) {
+        PermissionStatus.Granted -> {
 
-            coroutineScope.launch {
-                val cameraProvider = context.getCameraProvider()
-                try {
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifeCycleOwner, cameraSelector, previewUseCase
-                    )
-                } catch (ex: Exception) {
-                    Log.e("CameraPreview", "Use case binding failed", ex)
-                }
-            }
-
-            previewView
         }
-    )
+        is PermissionStatus.Denied -> {
+            Column(modifier = Modifier.background(Color.White)) {
+                val textToShow = if(cameraPermissionState.status.shouldShowRationale) {
+                    // User has denied
+                    "This feature is required"
+                } else {
+                    "Please grant the permission to use the camera"
+                }
+                Text(text = textToShow)
+                Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
+                    Text(text = "Request permission")
+                }
+            }
+        }
+    }
+}
+
+suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
+    ProcessCameraProvider.getInstance(this).also { cameraProvider ->
+        cameraProvider.addListener({continuation.resume(cameraProvider.get())}, ContextCompat.getMainExecutor(this))
+    }
+}
+
+
+private fun takePhoto(context: Context, imageCapture: ImageCapture ) {
+    imageCapture.takePicture(ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageCapturedCallback() {
+        override fun onCaptureSuccess(imageProxy: ImageProxy) {
+            // TODO externalise some of the logic in an appropriate class
+            val cacheFolder = context.cacheDir.absolutePath
+            val photoFile = File(
+                cacheFolder,
+                SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.FRANCE).format(System.currentTimeMillis()) + ".jpg"
+            )
+
+            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+            imageCapture.takePicture(
+                outputOptions, ContextCompat.getMainExecutor(context), object: ImageCapture.OnImageSavedCallback {
+                    override fun onError(e: ImageCaptureException) {
+                        Log.e("takePhoto", "Photo capture failed: ${e.message}", e)
+                    }
+
+                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        val savedUri = Uri.fromFile(photoFile)
+                        val msg = "Photo captured succeeded: $savedUri"
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        Log.d("takePhoto", msg)
+                    }
+                }
+            )
+        }
+        override fun onError(exception: ImageCaptureException) {
+            TODO("Not yet implemented")
+        }
+    })
 }
