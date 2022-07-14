@@ -40,10 +40,7 @@ import androidx.navigation.compose.rememberNavController
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.Link
 import io.eflamm.notlelo.ui.theme.NotleloTheme
-import io.eflamm.notlelo.viewmodel.EventViewModel
-import io.eflamm.notlelo.viewmodel.EventViewModelFactory
-import io.eflamm.notlelo.viewmodel.IEventViewModel
-import io.eflamm.notlelo.viewmodel.MockEventViewModel
+import io.eflamm.notlelo.viewmodel.*
 
 class HomeActivity : AppCompatActivity() {
 
@@ -51,7 +48,11 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val eventViewModel: EventViewModel by viewModels {
-            EventViewModelFactory((application as NotleloApplication).eventRepository)
+            EventViewModelFactory((application as NotleloApplication).eventRepository, (application as NotleloApplication).productRepository)
+        }
+
+        val cameraViewModel: CameraViewModel by viewModels {
+            CameraViewModelFactory()
         }
 
         val applicationTitle = getString(R.string.lowercase_app_name)
@@ -68,7 +69,7 @@ class HomeActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    NotleloApp(applicationTitle, links, eventViewModel)
+                    NotleloApp(applicationTitle, links, eventViewModel, cameraViewModel)
                 }
             }
         }
@@ -79,22 +80,23 @@ class HomeActivity : AppCompatActivity() {
 fun NotleloApp(
     applicationTitle: String,
     links: List<Link>,
-    eventViewModel: IEventViewModel
+    eventViewModel: IEventViewModel,
+    cameraViewModel: CameraViewModel
 ) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
         composable(route = "camera"){
-            CameraView(navController = navController)
+            CameraView(navController, eventViewModel, cameraViewModel)
         }
         composable(route = "home"){
-            HomeView(navController = navController, applicationTitle = applicationTitle, links = links, eventViewModel)
+            HomeView( navController,  applicationTitle,  links, eventViewModel)
         }
         composable(route = "library"){
-            LibraryView(navController = navController)
+            LibraryView( navController, eventViewModel)
         }
         composable(route = "settings"){
-            SettingsView(navController = navController)
+            SettingsView( navController)
         }
     }
 }
@@ -241,7 +243,7 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewMo
         Button(onClick = {
             // TODO set the added event as the selected event
             val newEvent = Event(eventName)
-            eventViewModel.insert(newEvent).invokeOnCompletion {
+            eventViewModel.insertEvent(newEvent).invokeOnCompletion {
                 setDisplayAddEvent(false)
             }
         }) {

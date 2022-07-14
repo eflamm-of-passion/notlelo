@@ -30,12 +30,14 @@ ext {
     nav_version = '2.4.1'
     camerax_version = "1.0.2"
     camerax_view_version = "1.0.0-alpha32"
-    gson = "2.9.0"
+    gsonVersion = "2.9.0"
+    coilVersion = "2.0.0-rc01"
 
     // testing
     junitVersion = '4.13.2'
     espressoVersion = '3.4.0'
     androidxJunitVersion = '1.1.3'
+    testCore = '1.4.0'
 
     // ak permission
     accompanistVersion = '0.24.8-beta'

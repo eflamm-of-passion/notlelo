@@ -13,11 +13,15 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -28,22 +32,29 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.Product
+import io.eflamm.notlelo.viewmodel.ICameraViewModel
+import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.ProductViewModel
 import io.eflamm.notlelo.viewmodel.ProductViewModelFactory
 import java.io.File
@@ -169,7 +180,7 @@ class CameraActivity : AppCompatActivity() {
 }
 
 @Composable
-fun CameraView(navController: NavController) {
+fun CameraView(navController: NavController, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
     val context = LocalContext.current
     val (isDisplayingSaveProductModal, setDisplayingSaveProductModal) = remember { mutableStateOf(false) }
     val outputDirectory = File(LocalContext.current.cacheDir.absolutePath)
@@ -181,6 +192,9 @@ fun CameraView(navController: NavController) {
         Box {
             CameraPreview(imageCapture)
             Box(Modifier.fillMaxSize()) {
+                Row(Modifier.align(Alignment.TopStart)) {
+                    TakenPictures(cameraViewModel)
+                }
                 Row(Modifier.align(Alignment.Center)) {
                     AskCameraPermissionRationale()
                 }
@@ -188,7 +202,7 @@ fun CameraView(navController: NavController) {
                     Button(onClick = { navController.navigateUp() }) {
                         Text(text = stringResource(id = R.string.camera_cancel), color = colorResource(id = R.color.black))
                     }
-                    Button(onClick = { takePhoto(context, imageCapture) }) {
+                    Button(onClick = { takePhoto(context, imageCapture, cameraViewModel) }) {
                         Text(text = "take picture", color = colorResource(id = R.color.black))
                     }
                     Button(onClick = { setDisplayingSaveProductModal(true) }) {
@@ -197,14 +211,11 @@ fun CameraView(navController: NavController) {
                 }
             }
             if(isDisplayingSaveProductModal) {
-                SaveProductModal(setDisplayingSaveProductModal)
+                SaveProductModal(setDisplayingSaveProductModal, eventViewModel, cameraViewModel)
             }
         }
     }
 }
-
-
-
 
 
 @Composable
@@ -235,10 +246,56 @@ fun CameraPreview(imageCapture: ImageCapture) {
 }
 
 @Composable
-fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit) {
+fun TakenPictures(cameraViewModel: ICameraViewModel) {
+    val pictureLocations = cameraViewModel.cameraUiState.takenPicturesPath
+
+    Box(
+        Modifier
+            .width(75.dp)
+            ) {
+        Column {
+            if(pictureLocations.size > 0) {
+                Row {
+                    Button(onClick = { cameraViewModel.removeAllPictures() }) {
+                        Text(text = "clear", color = colorResource(id = R.color.black))
+                    }
+                }
+            }
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top) {
+
+                pictureLocations.forEach { pictureLocation ->
+                    // TODO update the list when a photo is added
+                    Row(modifier = Modifier.padding(5.dp), horizontalArrangement = Arrangement.Start) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(pictureLocation)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "",
+                            placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(64.dp).clip(CircleShape)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
     Box(modifier = Modifier
         .fillMaxSize()
     ) {
+
+        val (productName, setProductName) = remember { mutableStateOf("") }
+        val (mealName, setMealName) = remember { mutableStateOf("") }
+
         Column(modifier = Modifier
             .align(Alignment.Center)
             .width(400.dp)
@@ -251,8 +308,8 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit) {
             }
             Row {
                 TextField(
-                    value = "",
-                    onValueChange = {/* TODO */ },
+                    value = productName,
+                    onValueChange = { setProductName(it) },
                     modifier = Modifier.width(300.dp),
 //                    label = {Text(stringResource(id = R.string.camera_product_input_label))},
                     colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
@@ -265,15 +322,27 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit) {
             }
             Row {
                 /* TODO list of meals*/
+                TextField(
+                    value = mealName,
+                    onValueChange = { setMealName(it) },
+                    modifier = Modifier.width(300.dp),
+                    colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
+                )
             }
             Row {
+                // TODO disable the button if there is not selected event, if the field are not set
                 Column {
-                    Button(onClick = { setDisplayingSaveProductModal(false) }) {
+                    Button(onClick = {
+                        setDisplayingSaveProductModal(false)
+                    }) {
                         Text(text = stringResource(id = R.string.camera_cancel), color = colorResource(id = R.color.black))
                     }
                 }
                 Column {
-                    Button(onClick = { setDisplayingSaveProductModal(false) }) {
+                    Button(onClick = {
+                        setDisplayingSaveProductModal(false)
+                        saveProduct(productName, mealName, eventViewModel, cameraViewModel)
+                    }) {
                         Text(text = stringResource(id = R.string.camera_validate), color = colorResource(id = R.color.black))
                     }
                 }
@@ -282,7 +351,16 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit) {
     }
 }
 
-
+private fun saveProduct(productName: String, mealName: String, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
+    val event: Event? = eventViewModel.uiState.selectedEvent
+    val listUris: List<Uri> = cameraViewModel.cameraUiState.takenPicturesPath
+    // TODO insert the pictures in the database 
+    if(event != null) {
+        val product = Product(productName, mealName, event.id)
+        eventViewModel.insertProduct(product)
+        cameraViewModel.removeAllPictures()
+    }
+}
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -317,35 +395,26 @@ suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutin
 }
 
 
-private fun takePhoto(context: Context, imageCapture: ImageCapture ) {
-    imageCapture.takePicture(ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageCapturedCallback() {
-        override fun onCaptureSuccess(imageProxy: ImageProxy) {
-            // TODO externalise some of the logic in an appropriate class
-            val cacheFolder = context.cacheDir.absolutePath
-            val photoFile = File(
-                cacheFolder,
-                SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.FRANCE).format(System.currentTimeMillis()) + ".jpg"
-            )
+private fun takePhoto(context: Context, imageCapture: ImageCapture, cameraViewModel: ICameraViewModel ) {
+    val cacheFolder = context.cacheDir.absolutePath
+    val photoFile = File(
+        cacheFolder,
+        SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.FRANCE).format(System.currentTimeMillis()) + ".jpg"
+    )
 
-            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
-            imageCapture.takePicture(
-                outputOptions, ContextCompat.getMainExecutor(context), object: ImageCapture.OnImageSavedCallback {
-                    override fun onError(e: ImageCaptureException) {
-                        Log.e("takePhoto", "Photo capture failed: ${e.message}", e)
-                    }
+    // TODO externalise some of the logic in an appropriate class
+    imageCapture.takePicture(
+        outputOptions, ContextCompat.getMainExecutor(context), object: ImageCapture.OnImageSavedCallback {
+            override fun onError(e: ImageCaptureException) {
+                Log.e("takePhoto", "Photo capture failed: ${e.message}", e)
+            }
 
-                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                        val savedUri = Uri.fromFile(photoFile)
-                        val msg = "Photo captured succeeded: $savedUri"
-                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                        Log.d("takePhoto", msg)
-                    }
-                }
-            )
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                val savedUri = Uri.fromFile(photoFile)
+                cameraViewModel.addPicture(savedUri)
+            }
         }
-        override fun onError(exception: ImageCaptureException) {
-            TODO("Not yet implemented")
-        }
-    })
+    )
 }

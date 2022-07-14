@@ -1,6 +1,5 @@
 package io.eflamm.notlelo.database
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.EventWithProducts

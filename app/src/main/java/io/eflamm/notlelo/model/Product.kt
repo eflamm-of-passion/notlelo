@@ -1,11 +1,14 @@
 package io.eflamm.notlelo.model
 
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import java.io.Serializable
 import java.time.LocalDate
 import java.util.*
 
 @Entity
-public class Product(
+class Product(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     @ColumnInfo(name = "event_id")
@@ -14,15 +17,13 @@ public class Product(
     val name: String,
     val date: LocalDate,
     val meal: String,
-//    val pictures: MutableList<String>
-) {
+): Serializable {
     constructor(name: String, meal: String, eventId: Long): this(
         0,
         eventId,
         UUID.randomUUID().toString(),
         name,
         LocalDate.now(),
-        meal,
-//        mutableListOf()
+        meal
     )
 }

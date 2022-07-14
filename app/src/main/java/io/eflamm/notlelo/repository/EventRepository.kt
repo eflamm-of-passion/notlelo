@@ -24,4 +24,5 @@ class EventRepository(private val eventDao: EventDao) {
     suspend fun removeByNames(eventNames: List<String>) {
         eventDao.deleteByNames(eventNames)
     }
+
 }

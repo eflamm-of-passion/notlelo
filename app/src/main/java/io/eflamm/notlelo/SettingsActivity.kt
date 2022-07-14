@@ -35,7 +35,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var eventsToDelete: MutableList<String>
 
     private val eventViewModel: EventViewModel by viewModels {
-        EventViewModelFactory((application as NotleloApplication).eventRepository)
+        EventViewModelFactory((application as NotleloApplication).eventRepository, (application as NotleloApplication).productRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
