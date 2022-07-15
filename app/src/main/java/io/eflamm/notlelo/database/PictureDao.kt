@@ -8,5 +8,5 @@ import io.eflamm.notlelo.model.Picture
 @Dao
 interface PictureDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(picture: Picture)
+    suspend fun insert(picture: Picture): Long
 }

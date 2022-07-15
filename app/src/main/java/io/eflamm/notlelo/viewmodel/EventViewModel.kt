@@ -6,9 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.*
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.EventWithProducts
+import io.eflamm.notlelo.model.Picture
 import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.repository.EventRepository
-import io.eflamm.notlelo.repository.ProductRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -19,14 +19,14 @@ interface IEventViewModel {
     val allEvents: LiveData<List<Event>>
     fun eventWithProducts(id: Long): LiveData<EventWithProducts>
     fun insertEvent(event: Event): Job
-    fun insertProduct(product: Product): Job
+    fun insertProductWithPictures(product: Product, pictures: List<Picture>): Job
 }
 
 data class EventUiState(
     var selectedEvent : Event?
 )
 
-class EventViewModel(private val eventRepository: EventRepository, private val productRepository: ProductRepository ): ViewModel(), IEventViewModel {
+class EventViewModel(private val eventRepository: EventRepository ): ViewModel(), IEventViewModel {
 
     override var uiState by mutableStateOf(EventUiState(selectedEvent = null))
         private set
@@ -41,16 +41,14 @@ class EventViewModel(private val eventRepository: EventRepository, private val p
         return eventRepository.eventWithProducts(id).asLiveData()
     }
 
-    override fun insertEvent(event: Event): Job = viewModelScope.launch {
-        eventRepository.insert(event)
+    override fun insertEvent(eventToCreate: Event): Job = viewModelScope.launch {
+        val eventCreatedId = eventRepository.insertEvent(eventToCreate)
+        val createdEvent = Event(eventCreatedId, eventToCreate)
+        updateSelectedEvent(createdEvent)
     }
 
-    override fun insertProduct(product: Product): Job = viewModelScope.launch {
-        productRepository.insert(product)
-    }
-
-    fun removeByNames(eventNames: List<String>) = viewModelScope.launch {
-        eventRepository.removeByNames(eventNames)
+    override fun insertProductWithPictures(product: Product, pictures: List<Picture>): Job = viewModelScope.launch {
+        eventRepository.insertProductWithPictures(product, pictures)
     }
 
 }
@@ -73,7 +71,7 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
         // do nothing
     }
 
-    override fun insertProduct(product: Product): Job {
+    override fun insertProductWithPictures(product: Product, pictures: List<Picture>): Job = viewModelScope.launch {
         // do nothing
     }
 
@@ -82,12 +80,12 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
     }
 }
 
-class EventViewModelFactory(private val eventRepository: EventRepository, private val productRepository: ProductRepository): ViewModelProvider.Factory {
+class EventViewModelFactory(private val eventRepository: EventRepository): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if(modelClass.isAssignableFrom(EventViewModel::class.java)) {
             // TODO should I let the selected event to null, instead of passing it in the parameters
             @Suppress("UNCHECKED_CAST")
-            return EventViewModel(eventRepository, productRepository) as T
+            return EventViewModel(eventRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -6,12 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.Spinner
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -52,11 +47,10 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import io.eflamm.notlelo.model.Event
+import io.eflamm.notlelo.model.Picture
 import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.viewmodel.ICameraViewModel
 import io.eflamm.notlelo.viewmodel.IEventViewModel
-import io.eflamm.notlelo.viewmodel.ProductViewModel
-import io.eflamm.notlelo.viewmodel.ProductViewModelFactory
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -71,9 +65,6 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var outputDirectory: File
     private val _authority = "io.eflamm.notlelo.fileprovider"
     private lateinit var selectedEvent: Event
-    private val productViewModel: ProductViewModel by viewModels {
-        ProductViewModelFactory((application as NotleloApplication).productRepository)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,55 +74,6 @@ class CameraActivity : AppCompatActivity() {
         outputDirectory = getOutputDirectory()
 
     }
-
-
-
-    fun onClickCancelSaveProduct(view: View) {
-        // TODO clean the fields
-        val modal = findViewById<LinearLayout>(R.id.layout_camera_save_product)
-        modal.visibility = View.GONE
-    }
-
-    fun onClickValidateSaveProduct(view: View) {
-        val productNameInput = findViewById<EditText>(R.id.input_product_name)
-        val mealNameSpinner = findViewById<Spinner>(R.id.meal_spinner)
-
-        val productName = productNameInput.text.toString()
-        val mealName = mealNameSpinner.selectedItem.toString()
-
-        val productToSave = Product(productName, mealName, selectedEvent.id)
-        productViewModel.insert(productToSave)
-        // TODO move the pictures from cache to internal storage
-
-        // remove the previews
-        val previewListLayout = this.findViewById<LinearLayout>(R.id.previewList)
-        previewListLayout.removeAllViews()
-        StorageUtils.clearCache(applicationContext)
-
-        // TODO clean the fields
-
-        // close the modal
-        val modal = findViewById<LinearLayout>(R.id.layout_camera_save_product)
-        modal.visibility = View.GONE
-    }
-
-
-
-
-    private fun createPhotoFolder(folders: String): File {
-        val mediaDir = externalMediaDirs.firstOrNull()?.let {
-            File(it, folders).apply { mkdirs() }
-        }
-        return if (mediaDir != null && mediaDir.exists()) mediaDir else filesDir
-    }
-
-
-
-
-
-
-
-
 
 
     fun zipAll(inputFilePath: String, outputFilePath: String) {
@@ -353,11 +295,10 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
 
 private fun saveProduct(productName: String, mealName: String, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
     val event: Event? = eventViewModel.uiState.selectedEvent
-    val listUris: List<Uri> = cameraViewModel.cameraUiState.takenPicturesPath
-    // TODO insert the pictures in the database 
+    val pictures: List<Picture> = cameraViewModel.cameraUiState.takenPicturesPath.map { uri -> Picture(uri.toString()) }
     if(event != null) {
         val product = Product(productName, mealName, event.id)
-        eventViewModel.insertProduct(product)
+        eventViewModel.insertProductWithPictures(product, pictures)
         cameraViewModel.removeAllPictures()
     }
 }

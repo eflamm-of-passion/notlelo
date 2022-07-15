@@ -87,10 +87,9 @@ class DaoTest {
         eventDao.insert(eventToCreate)
         val eventCreated = eventDao.getAllEvents().first()[0]
         val productToCreate = Product(name = "product name", meal = "meal name", eventId = eventCreated.id)
-        productDao.insert(productToCreate)
-        val productCreated = productDao.getProductByUuid(productToCreate.uuid).first()
-        val picture1 = Picture(productId = productCreated.id, path = "some path")
-        val picture2 = Picture(productId = productCreated.id, path = "some other path")
+        val productCreatedId = productDao.insert(productToCreate)
+        val picture1 = Picture(productId = productCreatedId, path = "some path")
+        val picture2 = Picture(productId = productCreatedId, path = "some other path")
         pictureDao.insert(picture1)
         pictureDao.insert(picture2)
         val actualEventWithProduct = eventDao.getEventWithProducts(eventCreated.id).first()

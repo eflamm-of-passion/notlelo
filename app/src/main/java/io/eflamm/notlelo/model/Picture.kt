@@ -12,7 +12,7 @@ class Picture(
     val id: Long,
     val uuid: String,
     @ColumnInfo(name = "product_id")
-    val productId: Long,
+    var productId: Long,
     val path: String
 ): Serializable {
     constructor(productId: Long, path: String): this(
@@ -20,6 +20,12 @@ class Picture(
         UUID.randomUUID().toString(),
         productId,
         path
+    )
 
+    constructor(path: String): this(
+        0,
+        UUID.randomUUID().toString(),
+        0,
+        path
     )
 }

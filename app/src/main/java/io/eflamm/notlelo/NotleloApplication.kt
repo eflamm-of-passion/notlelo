@@ -3,7 +3,6 @@ package io.eflamm.notlelo
 import android.app.Application
 import io.eflamm.notlelo.database.NotleloDatabase
 import io.eflamm.notlelo.repository.EventRepository
-import io.eflamm.notlelo.repository.ProductRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
@@ -16,6 +15,5 @@ class NotleloApplication: Application() {
     // Using by lazy so the database and the repository are only created when they're needed
     // rather than when the application starts
     val database by lazy { NotleloDatabase.getInstance(this)}
-    val eventRepository by lazy { EventRepository(database.eventDao()) }
-    val productRepository by lazy { ProductRepository(database.productDao()) }
+    val eventRepository by lazy { EventRepository(database.eventDao(), database.productDao(), database.pictureDao()) }
 }

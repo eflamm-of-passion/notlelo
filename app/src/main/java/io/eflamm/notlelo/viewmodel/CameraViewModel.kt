@@ -34,6 +34,7 @@ class CameraViewModel: ViewModel(), ICameraViewModel {
     }
 
     override fun removeAllPictures() {
+        // TODO remove them from the cache probably
         cameraUiState.takenPicturesPath.clear()
     }
 

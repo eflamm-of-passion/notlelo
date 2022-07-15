@@ -48,7 +48,7 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val eventViewModel: EventViewModel by viewModels {
-            EventViewModelFactory((application as NotleloApplication).eventRepository, (application as NotleloApplication).productRepository)
+            EventViewModelFactory((application as NotleloApplication).eventRepository)
         }
 
         val cameraViewModel: CameraViewModel by viewModels {
@@ -112,7 +112,14 @@ fun HomeView(
     val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
     val (events, setEvents) = remember { mutableStateOf(emptyList<Event>()) }
 
-    eventViewModel.allEvents.observeAsState().value?.let { setEvents(it) }
+    eventViewModel.allEvents.observeAsState().value?.let { events ->
+        // load the list, and set the selected event with the first element of the list
+        setEvents(events)
+        val selectedEvent: Event? = eventViewModel.uiState.selectedEvent
+        if(selectedEvent == null && events.isNotEmpty()) {
+            eventViewModel.updateSelectedEvent(events[0])
+        }
+    }
 
     Column(
         Modifier

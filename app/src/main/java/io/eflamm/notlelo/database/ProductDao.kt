@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ProductDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(product: Product)
+    suspend fun insert(product: Product): Long
 
     @Query("SELECT * FROM Product WHERE uuid = :uuid")
     fun getProductByUuid(uuid: String): Flow<Product>

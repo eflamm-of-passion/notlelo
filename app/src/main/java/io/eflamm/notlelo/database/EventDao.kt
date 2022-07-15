@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface EventDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(event: Event)
+    suspend fun insert(event: Event): Long
 
     @Update
     suspend fun updateEvent(event: Event)

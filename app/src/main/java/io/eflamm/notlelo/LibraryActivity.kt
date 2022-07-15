@@ -3,19 +3,25 @@ package io.eflamm.notlelo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.EventWithProducts
 import io.eflamm.notlelo.ui.theme.NotleloTheme
@@ -48,14 +54,32 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
         event?.let { eventViewModel.eventWithProducts(it.id).observeAsState().value }
 
     Column(modifier = Modifier
-        .height(IntrinsicSize.Max)
-        .width(IntrinsicSize.Max)
+        .fillMaxSize()
         .background(color = colorResource(id = R.color.white))) {
         HeaderView(navController, stringResource(id = R.string.home_library))
-        if (eventWithProducts != null) {
-            Text(text = "event : " + eventWithProducts.products.size , color = colorResource(
-                id = R.color.secondary
-            ))
+        eventWithProducts?.products?.forEach { productWithPictures ->
+            Row {
+                Text(text = productWithPictures.product.name,
+                    color = colorResource(id = R.color.secondary),
+                    fontSize = 35.sp,
+                )
+            }
+            Row {
+                productWithPictures.pictures.forEach { picture ->
+                    Row(modifier = Modifier.padding(5.dp), horizontalArrangement = Arrangement.Start) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(picture.path)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "",
+                            placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(125.dp).clip(RoundedCornerShape(7.dp))
+                        )
+                    }
+                }
+            }
         }
     }
 }

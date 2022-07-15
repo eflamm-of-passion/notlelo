@@ -17,4 +17,9 @@ class Event(
             UUID.randomUUID().toString(),
             name
     )
+    constructor(id: Long, event: Event) : this(
+        id,
+        event.uuid,
+        event.uuid
+    )
 }
