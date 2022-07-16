@@ -1,9 +1,13 @@
 package io.eflamm.notlelo.viewmodel
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.FileProvider
 import androidx.lifecycle.*
+import io.eflamm.notlelo.StorageUtils
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.EventWithProducts
 import io.eflamm.notlelo.model.Picture
@@ -11,6 +15,7 @@ import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.repository.EventRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.io.File
 
 
 interface IEventViewModel {
@@ -20,6 +25,7 @@ interface IEventViewModel {
     fun eventWithProducts(id: Long): LiveData<EventWithProducts>
     fun insertEvent(event: Event): Job
     fun insertProductWithPictures(product: Product, pictures: List<Picture>): Job
+    fun shareEvent(context: Context, eventWithProducts: EventWithProducts): Intent
 }
 
 data class EventUiState(
@@ -51,6 +57,35 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
         eventRepository.insertProductWithPictures(product, pictures)
     }
 
+    override fun shareEvent(context: Context, eventWithProducts: EventWithProducts): Intent {
+        val zippedEvent: File = zipEvent(context, eventWithProducts)
+        // TODO change the authority by a global variable
+        val fileUriWithPermissionGranted = FileProvider.getUriForFile(context, "io.eflamm.notlelo.fileprovider", zippedEvent)
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, fileUriWithPermissionGranted)
+            type = "application/zip"
+        }
+        return Intent.createChooser(sendIntent, null)
+    }
+
+    private fun zipEvent(context: Context, eventWithProducts: EventWithProducts): File {
+        val temporaryPictureFiles = mutableListOf<File>()
+        val eventName = eventWithProducts.event.name
+        eventWithProducts.products.forEach { productWithPictures ->
+            val productName = productWithPictures.product.name
+            productWithPictures.pictures.forEach { picture ->
+                // FIXME give the real filename
+                val targetPictureFileName = picture.uuid + ".jpg"
+                val temporaryPictureFile = StorageUtils.insertPictureInTemporaryFolder(context, eventName, productName, targetPictureFileName, File(picture.path))
+                temporaryPictureFiles.add(temporaryPictureFile)
+            }
+        }
+        val zippedFileName = "$eventName.zip"
+        val zippedEventTemporaryFile = StorageUtils.zipFolder(context.cacheDir, eventName, zippedFileName, temporaryPictureFiles)
+        return zippedEventTemporaryFile
+    }
+
 }
 
 class MockEventViewModel(): ViewModel(), IEventViewModel {
@@ -73,6 +108,11 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
 
     override fun insertProductWithPictures(product: Product, pictures: List<Picture>): Job = viewModelScope.launch {
         // do nothing
+    }
+
+    override fun shareEvent(context: Context, eventWithProducts: EventWithProducts): Intent {
+        TODO("Not yet implemented")
+        return Intent()
     }
 
     fun removeByNames(eventNames: List<String>) = viewModelScope.launch {

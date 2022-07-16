@@ -117,6 +117,7 @@ fun HomeView(
         setEvents(events)
         val selectedEvent: Event? = eventViewModel.uiState.selectedEvent
         if(selectedEvent == null && events.isNotEmpty()) {
+            // TODO should use the event with the last update, or the favorite, I don't know yet, instead of first
             eventViewModel.updateSelectedEvent(events[0])
         }
     }

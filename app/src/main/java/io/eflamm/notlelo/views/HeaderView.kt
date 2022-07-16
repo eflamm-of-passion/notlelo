@@ -22,23 +22,26 @@ import androidx.navigation.compose.rememberNavController
 import io.eflamm.notlelo.R
 import io.eflamm.notlelo.ui.theme.NotleloTheme
 
-//class HeaderView : ComponentActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        setContent {
-//            NotleloTheme {
-//                // A surface container using the 'background' color from the theme
-//                Surface(
-//                    modifier = Modifier.fillMaxSize(),
-//                    color = MaterialTheme.colors.background
-//                ) {
-//                    Header(this, "Hello world")
-//                    Text("hello")
-//                }
-//            }
-//        }
-//    }
-//}
+@Composable
+fun HeaderView(navController: NavController, title: String, childComponent: Unit) {
+    Row(modifier = Modifier
+        .height(80.dp)
+        .fillMaxWidth()
+        .background(color = colorResource(id = R.color.primary)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button( onClick = { navController.navigateUp() }) {
+            Text("Retour")
+        }
+        Text(title,
+            fontSize = 50.sp,
+            fontFamily = FontFamily(Font(R.font.caveat_brush, style = FontStyle.Normal)),
+            color = colorResource(id = android.R.color.white),
+            modifier = Modifier.padding(start = 5.dp)
+        )
+        childComponent
+    }
+}
 
 @Composable
 fun HeaderView(navController: NavController, title: String) {

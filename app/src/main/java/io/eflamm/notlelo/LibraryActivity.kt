@@ -1,10 +1,12 @@
 package io.eflamm.notlelo
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -49,6 +51,7 @@ class LibraryActivity : ComponentActivity() {
 @Composable
 fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
 
+    val context = LocalContext.current
     val event: Event? = eventViewModel.uiState.selectedEvent
     val eventWithProducts: EventWithProducts? =
         event?.let { eventViewModel.eventWithProducts(it.id).observeAsState().value }
@@ -56,7 +59,11 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
     Column(modifier = Modifier
         .fillMaxSize()
         .background(color = colorResource(id = R.color.white))) {
-        HeaderView(navController, stringResource(id = R.string.home_library))
+        HeaderView(
+            navController,
+            stringResource(id = R.string.home_library),
+            ShareEventButton(context, eventWithProducts, eventViewModel)
+            )
         eventWithProducts?.products?.forEach { productWithPictures ->
             Row {
                 Text(text = productWithPictures.product.name,
@@ -81,6 +88,19 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ShareEventButton(context: Context, eventToShare: EventWithProducts?, eventViewModel: IEventViewModel) {
+    Button( onClick = {
+        if (eventToShare != null) {
+            val intent = eventViewModel.shareEvent(context, eventToShare)
+            context.startActivity(intent)
+        }
+        // TODO else display toast to indicate the event are not yet loaded
+    }) {
+        Text("Partager")
     }
 }
 

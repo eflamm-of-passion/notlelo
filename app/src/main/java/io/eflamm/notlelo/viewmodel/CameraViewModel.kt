@@ -1,6 +1,5 @@
 package io.eflamm.notlelo.viewmodel
 
-import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -10,14 +9,14 @@ import androidx.lifecycle.ViewModelProvider
 
 interface ICameraViewModel {
     val cameraUiState: CameraUiState
-    fun addPicture(location: Uri)
-    fun removePicture(location: Uri)
+    fun addPicture(location: String)
+    fun removePicture(location: String)
     fun removeAllPictures()
     fun takePicture()
 }
 
 data class CameraUiState(
-    var takenPicturesPath : MutableList<Uri>
+    var takenPicturesPath : MutableList<String>
 )
 
 class CameraViewModel: ViewModel(), ICameraViewModel {
@@ -25,11 +24,11 @@ class CameraViewModel: ViewModel(), ICameraViewModel {
     override var cameraUiState by mutableStateOf(CameraUiState(mutableStateListOf()))
         private set
 
-    override fun addPicture(location: Uri) {
+    override fun addPicture(location: String) {
         cameraUiState.takenPicturesPath.add(location)
     }
 
-    override fun removePicture(location: Uri) {
+    override fun removePicture(location: String) {
         cameraUiState.takenPicturesPath.remove(location)
     }
 

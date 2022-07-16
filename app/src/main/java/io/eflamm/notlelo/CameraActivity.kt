@@ -3,7 +3,6 @@ package io.eflamm.notlelo
 import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -353,8 +352,7 @@ private fun takePhoto(context: Context, imageCapture: ImageCapture, cameraViewMo
             }
 
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                val savedUri = Uri.fromFile(photoFile)
-                cameraViewModel.addPicture(savedUri)
+                cameraViewModel.addPicture(photoFile.absolutePath)
             }
         }
     )
