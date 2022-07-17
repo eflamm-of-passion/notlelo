@@ -9,9 +9,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.*
 import io.eflamm.notlelo.StorageUtils
 import io.eflamm.notlelo.model.Event
-import io.eflamm.notlelo.model.EventWithProducts
-import io.eflamm.notlelo.model.Picture
-import io.eflamm.notlelo.model.Product
+import io.eflamm.notlelo.model.EventWithDays
 import io.eflamm.notlelo.repository.EventRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -22,10 +20,10 @@ interface IEventViewModel {
     val uiState: EventUiState
     fun updateSelectedEvent(event: Event)
     val allEvents: LiveData<List<Event>>
-    fun eventWithProducts(id: Long): LiveData<EventWithProducts>
+    fun eventWithProducts(id: Long): LiveData<EventWithDays>
     fun insertEvent(event: Event): Job
-    fun insertProductWithPictures(product: Product, pictures: List<Picture>): Job
-    fun shareEvent(context: Context, eventWithProducts: EventWithProducts): Intent
+    fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Job
+    fun shareEvent(context: Context, eventWithProducts: EventWithDays): Intent
 }
 
 data class EventUiState(
@@ -43,7 +41,7 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
 
     override val allEvents = eventRepository.allEvents.asLiveData()
 
-    override fun eventWithProducts(id: Long): LiveData<EventWithProducts> {
+    override fun eventWithProducts(id: Long): LiveData<EventWithDays> {
         return eventRepository.eventWithProducts(id).asLiveData()
     }
 
@@ -53,11 +51,11 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
         updateSelectedEvent(createdEvent)
     }
 
-    override fun insertProductWithPictures(product: Product, pictures: List<Picture>): Job = viewModelScope.launch {
-        eventRepository.insertProductWithPictures(product, pictures)
+    override fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Job = viewModelScope.launch {
+        eventRepository.insertFullProduct(eventId, mealName, productName, picturePaths)
     }
 
-    override fun shareEvent(context: Context, eventWithProducts: EventWithProducts): Intent {
+    override fun shareEvent(context: Context, eventWithProducts: EventWithDays): Intent {
         val zippedEvent: File = zipEvent(context, eventWithProducts)
         // TODO change the authority by a global variable
         val fileUriWithPermissionGranted = FileProvider.getUriForFile(context, "io.eflamm.notlelo.fileprovider", zippedEvent)
@@ -69,21 +67,40 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
         return Intent.createChooser(sendIntent, null)
     }
 
-    private fun zipEvent(context: Context, eventWithProducts: EventWithProducts): File {
+    private fun zipEvent(context: Context, eventWithProducts: EventWithDays): File {
         val temporaryPictureFiles = mutableListOf<File>()
+        // FIXME is there a way to have a better complexity. Using a tree, recursive, coroutine ?
         val eventName = eventWithProducts.event.name
-        eventWithProducts.products.forEach { productWithPictures ->
-            val productName = productWithPictures.product.name
-            productWithPictures.pictures.forEach { picture ->
-                // FIXME give the real filename
-                val targetPictureFileName = picture.uuid + ".jpg"
-                val temporaryPictureFile = StorageUtils.insertPictureInTemporaryFolder(context, eventName, productName, targetPictureFileName, File(picture.path))
-                temporaryPictureFiles.add(temporaryPictureFile)
+        eventWithProducts.days.forEach { dayWithMeals ->
+            val dayAsString = dayWithMeals.day.date.toString()
+            dayWithMeals.meals.forEach { mealWithProducts ->
+                val mealName = mealWithProducts.meal.name
+                mealWithProducts.products.forEach { productWithPictures ->
+                    val productName = productWithPictures.product.name
+                    productWithPictures.pictures.forEach { picture ->
+                        // TODO get the real name instead
+                        val targetPictureFileName = picture.uuid + ".jpg"
+                        val temporaryPictureFile = StorageUtils.insertPictureInTemporaryFolder(
+                            context,
+                            eventName,
+                            dayAsString,
+                            mealName,
+                            productName,
+                            targetPictureFileName,
+                            File(picture.path)
+                        )
+                        temporaryPictureFiles.add(temporaryPictureFile)
+                    }
+                }
             }
         }
         val zippedFileName = "$eventName.zip"
-        val zippedEventTemporaryFile = StorageUtils.zipFolder(context.cacheDir, eventName, zippedFileName, temporaryPictureFiles)
-        return zippedEventTemporaryFile
+        return StorageUtils.zipFolder(
+            context.cacheDir,
+            eventName,
+            zippedFileName,
+            temporaryPictureFiles
+        )
     }
 
 }
@@ -97,7 +114,7 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
 
     override val allEvents = liveData { emit(listOf( Event("Camp bleu"), Event("Camp rouge"))) }
 
-    override fun eventWithProducts(id: Long): LiveData<EventWithProducts> {
+    override fun eventWithProducts(id: Long): LiveData<EventWithDays> {
         // FIXME return some values
         return liveData {  }
     }
@@ -106,11 +123,11 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
         // do nothing
     }
 
-    override fun insertProductWithPictures(product: Product, pictures: List<Picture>): Job = viewModelScope.launch {
+    override fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Job = viewModelScope.launch {
         // do nothing
     }
 
-    override fun shareEvent(context: Context, eventWithProducts: EventWithProducts): Intent {
+    override fun shareEvent(context: Context, eventWithProducts: EventWithDays): Intent {
         TODO("Not yet implemented")
         return Intent()
     }

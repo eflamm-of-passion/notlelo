@@ -15,5 +15,5 @@ class NotleloApplication: Application() {
     // Using by lazy so the database and the repository are only created when they're needed
     // rather than when the application starts
     val database by lazy { NotleloDatabase.getInstance(this)}
-    val eventRepository by lazy { EventRepository(database.eventDao(), database.productDao(), database.pictureDao()) }
+    val eventRepository by lazy { EventRepository(database.eventDao(), database.dateDao(), database.mealDao(), database.productDao(), database.pictureDao()) }
 }

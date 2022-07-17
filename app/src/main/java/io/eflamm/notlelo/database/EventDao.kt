@@ -2,7 +2,7 @@ package io.eflamm.notlelo.database
 
 import androidx.room.*
 import io.eflamm.notlelo.model.Event
-import io.eflamm.notlelo.model.EventWithProducts
+import io.eflamm.notlelo.model.EventWithDays
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -22,8 +22,9 @@ interface EventDao {
 
     @Transaction
     @Query("SELECT * FROM Event WHERE id = :id")
-    fun getEventWithProducts(id: Long): Flow<EventWithProducts>
+    fun getEventWithProducts(id: Long): Flow<EventWithDays>
 
+    // TODO change by ids
     @Query("DELETE FROM Event WHERE name IN (:eventNames)")
     suspend fun deleteByNames(eventNames: List<String>)
 }

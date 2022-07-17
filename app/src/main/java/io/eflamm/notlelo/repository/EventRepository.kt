@@ -1,19 +1,21 @@
 package io.eflamm.notlelo.repository
 
 import androidx.annotation.WorkerThread
-import io.eflamm.notlelo.database.EventDao
-import io.eflamm.notlelo.database.PictureDao
-import io.eflamm.notlelo.database.ProductDao
-import io.eflamm.notlelo.model.Event
-import io.eflamm.notlelo.model.EventWithProducts
-import io.eflamm.notlelo.model.Picture
-import io.eflamm.notlelo.model.Product
+import io.eflamm.notlelo.database.*
+import io.eflamm.notlelo.model.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
-class EventRepository(private val eventDao: EventDao, private val productDao: ProductDao, private val pictureDao: PictureDao) {
+class EventRepository(
+    private val eventDao: EventDao,
+    private val dayDao: DayDao,
+    private val mealDao: MealDao,
+    private val productDao: ProductDao,
+    private val pictureDao: PictureDao
+    ) {
     val allEvents: Flow<List<Event>> = eventDao.getAllEvents()
 
-    fun eventWithProducts(id: Long): Flow<EventWithProducts> {
+    fun eventWithProducts(id: Long): Flow<EventWithDays> {
         return eventDao.getEventWithProducts(id)
     }
 
@@ -31,13 +33,35 @@ class EventRepository(private val eventDao: EventDao, private val productDao: Pr
 
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
-    suspend fun insertProductWithPictures(product: Product, pictures: List<Picture>): Long {
-        val productCreatedId = productDao.insert(product)
-        pictures.forEach { picture ->
-            picture.productId = productCreatedId
+    suspend fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Long {
+        val day = Day(eventId)
+        val existingDay = dayDao.getDayByEventIdByDate(eventId, day.date).first()
+        var dayId = 0L
+        // if day already exists for the given event so we do not require to create another one
+        if(existingDay == null) {
+            dayId = dayDao.insert(day)
+        } else {
+            dayId = existingDay.id
+        }
+
+        val meal = Meal(dayId, mealName)
+        var mealId = 0L
+        // same thing for the meals
+        val existingMeal = mealDao.getDayByEventIdByDate(dayId, mealName).first()
+        if(existingMeal == null) {
+            mealId = mealDao.insert(meal)
+        } else {
+            mealId = existingMeal.id
+        }
+
+        val product = Product(eventId, mealId, productName)
+        val productId = productDao.insert(product)
+
+        picturePaths.forEach { path ->
+            val picture = Picture(productId, path)
             pictureDao.insert(picture)
         }
-        return productCreatedId;
+        return productId;
     }
 
 }

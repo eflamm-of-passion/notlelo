@@ -33,8 +33,9 @@ object StorageUtils {
         return writeFile(context, file, text)
     }
 
-    fun insertPictureInTemporaryFolder(context: Context, eventName: String, productName: String, pictureFileName: String, pictureFile: File): File {
+    fun insertPictureInTemporaryFolder(context: Context, eventName: String, dateAsString: String, mealName: String, productName: String, pictureFileName: String, pictureFile: File): File {
         // TODO construct some usable file architecture instead of each subfolder
+        // TODO use the remaining arguments, or put them in a ordered list which would be cleaner instead of having some much arguments
         val temporaryFile = createOrGetFileInsideSubFolder(context.cacheDir, eventName, productName, pictureFileName)
         return Files.copy(Path(pictureFile.path), Path(temporaryFile.path), StandardCopyOption.REPLACE_EXISTING).toFile()
     }

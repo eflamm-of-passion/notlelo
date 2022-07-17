@@ -5,6 +5,8 @@ import androidx.room.PrimaryKey
 import java.io.Serializable
 import java.util.*
 
+// event -> date -> meal -> product -> picture
+
 @Entity
 class Event(
     @PrimaryKey(autoGenerate = true)
@@ -20,6 +22,6 @@ class Event(
     constructor(id: Long, event: Event) : this(
         id,
         event.uuid,
-        event.uuid
+        event.name
     )
 }

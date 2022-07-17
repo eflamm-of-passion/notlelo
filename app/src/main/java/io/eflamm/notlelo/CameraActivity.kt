@@ -46,8 +46,6 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import io.eflamm.notlelo.model.Event
-import io.eflamm.notlelo.model.Picture
-import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.viewmodel.ICameraViewModel
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import java.io.File
@@ -292,16 +290,6 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
     }
 }
 
-private fun saveProduct(productName: String, mealName: String, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
-    val event: Event? = eventViewModel.uiState.selectedEvent
-    val pictures: List<Picture> = cameraViewModel.cameraUiState.takenPicturesPath.map { uri -> Picture(uri.toString()) }
-    if(event != null) {
-        val product = Product(productName, mealName, event.id)
-        eventViewModel.insertProductWithPictures(product, pictures)
-        cameraViewModel.removeAllPictures()
-    }
-}
-
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AskCameraPermissionRationale() {
@@ -336,6 +324,7 @@ suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutin
 
 
 private fun takePhoto(context: Context, imageCapture: ImageCapture, cameraViewModel: ICameraViewModel ) {
+    // TODO decrease the photo quality, because it takes too much space
     val cacheFolder = context.cacheDir.absolutePath
     val photoFile = File(
         cacheFolder,
@@ -356,4 +345,13 @@ private fun takePhoto(context: Context, imageCapture: ImageCapture, cameraViewMo
             }
         }
     )
+}
+
+private fun saveProduct(productName: String, mealName: String, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
+    val selectedEvent: Event? = eventViewModel.uiState.selectedEvent
+    if(selectedEvent != null) {
+        val picturePaths = cameraViewModel.cameraUiState.takenPicturesPath.toList() // toList is needed to create a copy of the list, otherwise the state list is lost in the process
+        eventViewModel.insertFullProduct(selectedEvent.id, mealName, productName, picturePaths)
+        cameraViewModel.removeAllPictures()
+    }
 }

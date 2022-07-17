@@ -38,6 +38,8 @@ ext {
     espressoVersion = '3.4.0'
     androidxJunitVersion = '1.1.3'
     testCore = '1.4.0'
+    mockitoVersion = '4.6.1'
+    mockitoKotlinVersion = '4.0.0'
 
     // ak permission
     accompanistVersion = '0.24.8-beta'

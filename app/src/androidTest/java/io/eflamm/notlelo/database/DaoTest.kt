@@ -1,13 +1,11 @@
 package io.eflamm.notlelo.database
 
 import android.content.Context
+import android.database.sqlite.SQLiteConstraintException
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.eflamm.notlelo.model.DataConverter
-import io.eflamm.notlelo.model.Event
-import io.eflamm.notlelo.model.Picture
-import io.eflamm.notlelo.model.Product
+import io.eflamm.notlelo.model.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -22,6 +20,8 @@ import org.junit.runner.RunWith
 class DaoTest {
 
     private lateinit var eventDao: EventDao
+    private lateinit var dayDao: DayDao
+    private lateinit var mealDao: MealDao
     private lateinit var productDao: ProductDao
     private lateinit var pictureDao: PictureDao
     private lateinit var database: NotleloDatabase
@@ -33,6 +33,8 @@ class DaoTest {
             .addTypeConverter(DataConverter()
         ).build()
         eventDao = database.eventDao()
+        dayDao = database.dateDao()
+        mealDao = database.mealDao()
         productDao = database.productDao()
         pictureDao = database.pictureDao()
     }
@@ -57,47 +59,60 @@ class DaoTest {
     }
 
     @Test
-    fun insertEventInsertProduct_eventAndProductReferencingEvent_eventUpdatedWithProducts() = runTest {
+    fun insertANewProduct_everyDatabaseLineCreated() = runTest {
         // given
         val eventToCreate = Event(name = "event name")
 
         // when
-        eventDao.insert(eventToCreate)
-        val eventCreated = eventDao.getAllEvents().first()[0]
-        val productToCreate = Product(name = "product name", meal = "meal name", eventId = eventCreated.id)
-        productDao.insert(productToCreate)
-        val actualEventWithProduct = eventDao.getEventWithProducts(eventCreated.id).first()
+        val eventId = eventDao.insert(eventToCreate)
 
-        // then
-        val numberOfProductsExpected = 1
-        Assert.assertEquals(eventToCreate.name, actualEventWithProduct.event.name)
-        Assert.assertEquals(eventToCreate.uuid, actualEventWithProduct.event.uuid)
-        Assert.assertEquals(numberOfProductsExpected, actualEventWithProduct.products.size)
-        Assert.assertEquals(productToCreate.name, actualEventWithProduct.products[0].product.name)
-        Assert.assertEquals(productToCreate.meal, actualEventWithProduct.products[0].product.meal)
-        Assert.assertEquals(productToCreate.uuid, actualEventWithProduct.products[0].product.uuid)
-    }
+        val date = Day(eventId)
+        val dateId = dayDao.insert(date)
 
-    @Test
-    fun insertEventInsertProductInsertPictures_eventAndProductReferencingEventAndPicturesReferencingProduct_eventUpdatedWithProductsAndPictures() = runTest {
-        // given
-        val eventToCreate = Event(name = "event name")
+        val meal = Meal(dateId, "meal name")
+        val mealId = mealDao.insert(meal)
 
-        // when
-        eventDao.insert(eventToCreate)
-        val eventCreated = eventDao.getAllEvents().first()[0]
-        val productToCreate = Product(name = "product name", meal = "meal name", eventId = eventCreated.id)
-        val productCreatedId = productDao.insert(productToCreate)
-        val picture1 = Picture(productId = productCreatedId, path = "some path")
-        val picture2 = Picture(productId = productCreatedId, path = "some other path")
+        val product = Product(eventId, mealId, "product name")
+        val productId = productDao.insert(product)
+
+        val picture1 = Picture(productId = productId, path = "some path")
+        val picture2 = Picture(productId = productId, path = "some other path")
         pictureDao.insert(picture1)
         pictureDao.insert(picture2)
-        val actualEventWithProduct = eventDao.getEventWithProducts(eventCreated.id).first()
+        val actualEventWithProduct = eventDao.getEventWithProducts(eventId).first()
 
         // then
         val numberOfPicturesExpected = 2
-        Assert.assertEquals(numberOfPicturesExpected, actualEventWithProduct.products[0].pictures.size)
-        Assert.assertEquals("some path", actualEventWithProduct.products[0].pictures[0].path)
-        Assert.assertEquals("some other path", actualEventWithProduct.products[0].pictures[1].path)
+        Assert.assertEquals(numberOfPicturesExpected, actualEventWithProduct.days[0].meals[0].products[0].pictures.size)
+        Assert.assertEquals("some path", actualEventWithProduct.days[0].meals[0].products[0].pictures[0].path)
+        Assert.assertEquals("some other path", actualEventWithProduct.days[0].meals[0].products[0].pictures[1].path)
     }
+
+    @Test(expected = SQLiteConstraintException::class)
+    fun insertTwoProductOnSameDay_throwException() = runTest {
+        // given
+        val eventToCreate = Event(name = "event name")
+
+        // when
+        val eventId = eventDao.insert(eventToCreate)
+
+        val day1 = Day(eventId)
+        val day1Id = dayDao.insert(day1)
+
+        val meal1 = Meal(day1Id, "meal name 1")
+        val meal1Id = mealDao.insert(meal1)
+
+        val product1 = Product(eventId, meal1Id, "product name 1")
+        val product1Id = productDao.insert(product1)
+
+        val day2 = Day(eventId)
+        val day2Id = dayDao.insert(day2)
+
+        val meal2 = Meal(day2Id, "meal name 2")
+        val meal2Id = mealDao.insert(meal2)
+
+        val product2 = Product(eventId, meal2Id, "product name 2")
+        val product2Id = productDao.insert(product2)
+    }
+
 }

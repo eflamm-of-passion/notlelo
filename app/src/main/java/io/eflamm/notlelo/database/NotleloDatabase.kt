@@ -8,11 +8,13 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import io.eflamm.notlelo.model.*
 
-@Database(entities = [Event::class, Picture::class, Product::class], version = 1, exportSchema = false)
+@Database(entities = [Event::class, Day::class, Meal::class, Product::class, Picture::class], version = 1, exportSchema = false)
 @TypeConverters(DataConverter::class)
 abstract class NotleloDatabase: RoomDatabase() {
     // DAO
     abstract fun eventDao(): EventDao
+    abstract fun dateDao(): DayDao
+    abstract fun mealDao(): MealDao
     abstract fun productDao(): ProductDao
     abstract fun pictureDao(): PictureDao
 
