@@ -11,12 +11,12 @@ import java.util.*
 class Event(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    val uuid: String,
+    val uuid: UUID,
     var name: String,
 ): Serializable {
     constructor(name: String) : this(
             0,
-            UUID.randomUUID().toString(),
+            UUID.randomUUID(),
             name
     )
     constructor(id: Long, event: Event) : this(

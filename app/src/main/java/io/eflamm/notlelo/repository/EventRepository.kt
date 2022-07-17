@@ -27,12 +27,6 @@ class EventRepository(
 
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
-    suspend fun removeByNames(eventNames: List<String>) {
-        eventDao.deleteByNames(eventNames)
-    }
-
-    @Suppress("RedundantSuspendModifier")
-    @WorkerThread
     suspend fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Long {
         val day = Day(eventId)
         val existingDay = dayDao.getDayByEventIdByDate(eventId, day.date).first()
@@ -62,6 +56,12 @@ class EventRepository(
             pictureDao.insert(picture)
         }
         return productId;
+    }
+
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun deleteEvents(events: List<Event>) {
+        eventDao.deleteByUuids(events.map { it.uuid })
     }
 
 }

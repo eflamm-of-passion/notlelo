@@ -96,7 +96,7 @@ fun NotleloApp(
             LibraryView( navController, eventViewModel)
         }
         composable(route = "settings"){
-            SettingsView( navController)
+            SettingsView( navController, eventViewModel)
         }
     }
 }

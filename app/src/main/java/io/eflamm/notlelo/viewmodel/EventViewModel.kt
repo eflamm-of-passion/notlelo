@@ -24,6 +24,7 @@ interface IEventViewModel {
     fun insertEvent(event: Event): Job
     fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Job
     fun shareEvent(context: Context, eventWithProducts: EventWithDays): Intent
+    fun deleteEvents(event: List<Event>): Job
 }
 
 data class EventUiState(
@@ -65,6 +66,10 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
             type = "application/zip"
         }
         return Intent.createChooser(sendIntent, null)
+    }
+
+    override fun deleteEvents(events: List<Event>): Job = viewModelScope.launch {
+        eventRepository.deleteEvents(events)
     }
 
     private fun zipEvent(context: Context, eventWithProducts: EventWithDays): File {
@@ -132,9 +137,10 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
         return Intent()
     }
 
-    fun removeByNames(eventNames: List<String>) = viewModelScope.launch {
-        // do nothing
+    override fun deleteEvents(event: List<Event>): Job = viewModelScope.launch {
+        TODO("Not yet implemented")
     }
+
 }
 
 class EventViewModelFactory(private val eventRepository: EventRepository): ViewModelProvider.Factory {
