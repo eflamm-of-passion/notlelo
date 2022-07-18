@@ -16,10 +16,12 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIos
+import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +48,8 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import io.eflamm.notlelo.model.Event
+import io.eflamm.notlelo.ui.theme.Green
+import io.eflamm.notlelo.ui.theme.Red
 import io.eflamm.notlelo.viewmodel.ICameraViewModel
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import java.io.File
@@ -138,14 +142,29 @@ fun CameraView(navController: NavController, eventViewModel: IEventViewModel, ca
                     AskCameraPermissionRationale()
                 }
                 Row(Modifier.align(Alignment.BottomCenter)) {
-                    Button(onClick = { navController.navigateUp() }) {
-                        Text(text = stringResource(id = R.string.camera_cancel), color = colorResource(id = R.color.black))
+                    TextButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            Icons.Filled.ArrowBackIos,
+                            contentDescription = stringResource(id = R.string.icon_desc_go_back),
+                            modifier = Modifier.size(80.dp),
+                            tint = colorResource(id = R.color.white)
+                        )
                     }
-                    Button(onClick = { takePhoto(context, imageCapture, cameraViewModel) }) {
-                        Text(text = "take picture", color = colorResource(id = R.color.black))
+                    TextButton(onClick = { takePhoto(context, imageCapture, cameraViewModel) }) {
+                        Icon(
+                            Icons.Filled.Camera,
+                            contentDescription = stringResource(id = R.string.icon_desc_take_picture),
+                            modifier = Modifier.size(80.dp),
+                            tint = colorResource(id = R.color.white)
+                        )
                     }
-                    Button(onClick = { setDisplayingSaveProductModal(true) }) {
-                        Text(text = stringResource(id = R.string.camera_validate), color = colorResource(id = R.color.black))
+                    TextButton(onClick = { setDisplayingSaveProductModal(true) }) {
+                        Icon(
+                            Icons.Filled.Check,
+                            contentDescription = stringResource(id = R.string.icon_desc_add_event),
+                            modifier = Modifier.size(80.dp),
+                            tint = colorResource(id = R.color.white)
+                        )
                     }
                 }
             }
@@ -195,8 +214,13 @@ fun TakenPictures(cameraViewModel: ICameraViewModel) {
         Column {
             if(pictureLocations.size > 0) {
                 Row {
-                    Button(onClick = { cameraViewModel.removeAllPictures() }) {
-                        Text(text = "clear", color = colorResource(id = R.color.black))
+                    TextButton(onClick = { cameraViewModel.removeAllPictures() }) {
+                        Icon(
+                            Icons.Filled.Cancel,
+                            contentDescription = stringResource(id = R.string.icon_desc_add_event),
+                            modifier = Modifier.size(80.dp),
+                            tint = colorResource(id = R.color.white)
+                        )
                     }
                 }
             }
@@ -238,12 +262,10 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
         Column(modifier = Modifier
             .align(Alignment.Center)
             .width(400.dp)
-            .height(200.dp)
+            .height(250.dp)
             .background(color = colorResource(id = R.color.white))) {
             Row {
-                Text(text = stringResource(id = R.string.camera_product_input_label), color = colorResource(
-                    id = R.color.secondary
-                ))
+                Text(text = stringResource(id = R.string.camera_product_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
             }
             Row {
                 TextField(
@@ -255,9 +277,7 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
                 )
             }
             Row {
-                Text(text = stringResource(id = R.string.camera_meal_input_label), color = colorResource(
-                    id = R.color.secondary
-                ))
+                Text(text = stringResource(id = R.string.camera_meal_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
             }
             Row {
                 /* TODO list of meals*/
@@ -271,18 +291,24 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
             Row {
                 // TODO disable the button if there is not selected event, if the field are not set
                 Column {
-                    Button(onClick = {
-                        setDisplayingSaveProductModal(false)
-                    }) {
-                        Text(text = stringResource(id = R.string.camera_cancel), color = colorResource(id = R.color.black))
+                    Button(
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Red),
+                        onClick = {
+                            setDisplayingSaveProductModal(false)
+                        }
+                    ) {
+                        Text(text = stringResource(id = R.string.camera_cancel), fontSize = MaterialTheme.typography.button.fontSize, color = MaterialTheme.typography.button.color)
                     }
                 }
                 Column {
-                    Button(onClick = {
-                        setDisplayingSaveProductModal(false)
-                        saveProduct(productName, mealName, eventViewModel, cameraViewModel)
-                    }) {
-                        Text(text = stringResource(id = R.string.camera_validate), color = colorResource(id = R.color.black))
+                    Button(
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Green),
+                        onClick = {
+                            setDisplayingSaveProductModal(false)
+                            saveProduct(productName, mealName, eventViewModel, cameraViewModel)
+                        }
+                    ) {
+                        Text(text = stringResource(id = R.string.camera_validate), fontSize = MaterialTheme.typography.button.fontSize, color = MaterialTheme.typography.button.color)
                     }
                 }
             }

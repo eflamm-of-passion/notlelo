@@ -84,4 +84,11 @@
     <string name="faq_found_a_bug_question">J\'ai trouvé un bug dans l\'application, que dois-je faire ?</string>
     <string name="faq_found_a_bug_answer">L\'application est encore en cours de développement et n\'a été testée que sur très peu d\'appareil. Si vous avez trouvé un bug, veuillez m\'en faire part en cliquant sur le bouton dans Contact.</string>
     <string name="title_activity_library">LibraryActivity</string>
+    <string name="icon_desc_go_back">Retourner à la page précédente</string>
+    <string name="icon_desc_add_event">Ajouter un nouvel évènement</string>
+    <string name="icon_desc_confirm_add_event">Confirmer l\'ajout de évènement</string>
+    <string name="icon_desc_cancel_add_event">Annuler l\'ajout de évènement</string>
+    <string name="icon_desc_take_picture">Prendre une photo</string>
+    <string name="icon_desc_add_product">Ajouter un produit</string>
+    <string name="icon_desc_share_event">Compresser et partager un évènement</string>
 </resources>

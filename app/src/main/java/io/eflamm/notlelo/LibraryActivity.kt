@@ -6,8 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -20,7 +24,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
@@ -34,17 +37,6 @@ import io.eflamm.notlelo.views.HeaderView
 class LibraryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        setContent {
-//            NotleloTheme {
-//                // A surface container using the 'background' color from the theme
-//                Surface(
-//                    modifier = Modifier.fillMaxSize(),
-//                    color = MaterialTheme.colors.background
-//                ) {
-//                    LibraryView()
-//                }
-//            }
-//        }
     }
 }
 
@@ -79,9 +71,10 @@ fun Days(days: List<DayWithMeals>) {
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top) {
                 Row {
-                    Text(text = dayWithMeals.day.date.toString(),
-                        color = colorResource(id = R.color.secondary),
-                        fontSize = 35.sp,
+                    Text(
+                        text = dayWithMeals.day.date.toString(),
+                        color = MaterialTheme.typography.h3.color,
+                        fontSize = MaterialTheme.typography.h3.fontSize
                     )
                 }
                 Meals(dayWithMeals.meals)
@@ -96,9 +89,10 @@ fun Meals(meals: List<MealWithProducts>) {
         Row {
             Column {
                 Row {
-                    Text(text = mealWithProducts.meal.name,
-                        color = colorResource(id = R.color.secondary),
-                        fontSize = 30.sp,
+                    Text(
+                        text = mealWithProducts.meal.name,
+                        color = MaterialTheme.typography.h5.color,
+                        fontSize = MaterialTheme.typography.h5.fontSize,
                     )
                 }
                 Products(mealWithProducts.products)
@@ -113,9 +107,10 @@ fun Products(products: List<ProductWithPictures>) {
         products.forEach { productWithPictures ->
             Column {
                 Row {
-                    Text(text = productWithPictures.product.name,
-                        color = colorResource(id = R.color.secondary),
-                        fontSize = 25.sp,
+                    Text(
+                        text = productWithPictures.product.name,
+                        color = MaterialTheme.typography.h6.color,
+                        fontSize = MaterialTheme.typography.h6.fontSize,
                     )
                 }
                 Pictures(productWithPictures.pictures)
@@ -147,14 +142,19 @@ fun Pictures(pictures: List<Picture>) {
 
 @Composable
 fun ShareEventButton(context: Context, eventToShare: EventWithDays?, eventViewModel: IEventViewModel) {
-    Button( onClick = {
+    TextButton( onClick = {
         if (eventToShare != null) {
             val intent = eventViewModel.shareEvent(context, eventToShare)
             context.startActivity(intent)
         }
         // TODO else display toast to indicate the event are not yet loaded
     }) {
-        Text("Partager")
+        Icon(
+            Icons.Filled.Share,
+            contentDescription = stringResource(id = R.string.icon_desc_share_event),
+            modifier = Modifier.size(35.dp),
+            tint = colorResource(id = R.color.primary)
+        )
     }
 }
 

@@ -10,8 +10,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -26,12 +29,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -136,9 +135,9 @@ fun HomeView(
                     .fillMaxSize(),
                 contentScale = ContentScale.Crop)
             Text(text = applicationTitle,
-                fontSize = 120.sp,
-                fontFamily = FontFamily(Font(R.font.caveat_brush, style = FontStyle.Normal)),
-                color = colorResource(id = android.R.color.white),
+                fontSize = MaterialTheme.typography.h1.fontSize,
+                fontFamily = MaterialTheme.typography.h1.fontFamily,
+                color = MaterialTheme.typography.h1.color,
                 modifier = Modifier.align(Alignment.Center))
         }
         Box(modifier = Modifier.weight(1.2f),
@@ -231,10 +230,16 @@ fun SelectEvents(
                 }
             }
         }
-        Button(onClick = {
+        TextButton(
+            onClick = {
             setDisplayAddEvent(true)
         }) {
-            Text(text = "add")
+            Icon(
+                Icons.Filled.AddCircleOutline,
+                contentDescription = stringResource(id = R.string.icon_desc_add_event),
+                modifier = Modifier.size(40.dp),
+                tint = colorResource(id = R.color.primary)
+            )
         }
     }
 }
@@ -248,19 +253,29 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewMo
             colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray)),
             placeholder = { Text(stringResource(id = R.string.home_event_input_placeholder)) },
             onValueChange = { setEventName(it)})
-        Button(onClick = {
+        TextButton(onClick = {
             // TODO set the added event as the selected event
             val newEvent = Event(eventName)
             eventViewModel.insertEvent(newEvent).invokeOnCompletion {
                 setDisplayAddEvent(false)
             }
         }) {
-            Text(text = "add")
+            Icon(
+                Icons.Outlined.CheckCircle,
+                contentDescription = stringResource(id = R.string.icon_desc_confirm_add_event),
+                modifier = Modifier.size(35.dp),
+                tint = colorResource(id = R.color.green)
+            )
         }
-        Button(onClick = {
+        TextButton(onClick = {
             setDisplayAddEvent(false)
         }) {
-            Text(text = "cancel")
+            Icon(
+                Icons.Filled.Cancel,
+                contentDescription = stringResource(id = R.string.icon_desc_cancel_add_event),
+                modifier = Modifier.size(35.dp),
+                tint = colorResource(id = R.color.red)
+            )
         }
     }
 }
@@ -268,10 +283,17 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewMo
 @Composable
 fun LinkToPage(navigateController: NavController, link: Link) {
     Row {
-       Button(onClick = {
+        TextButton(onClick = {
            navigateController.navigate(link.route)
        }) {
-           Text(text = link.title)
+           Text(
+               text = link.title,
+               fontFamily = MaterialTheme.typography.h4.fontFamily,
+               fontSize = MaterialTheme.typography.h4.fontSize,
+               fontWeight = MaterialTheme.typography.h4.fontWeight,
+               letterSpacing = MaterialTheme.typography.h4.letterSpacing,
+               color = MaterialTheme.typography.h4.color,
+           )
        }
     }
 }

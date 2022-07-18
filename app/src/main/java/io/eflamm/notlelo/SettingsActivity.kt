@@ -1,14 +1,10 @@
 package io.eflamm.notlelo
 
 import android.os.Bundle
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Checkbox
-import androidx.compose.material.CheckboxDefaults
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
@@ -19,33 +15,17 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import io.eflamm.notlelo.databinding.SettingsActivityBinding
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.ui.theme.NotleloTheme
-import io.eflamm.notlelo.viewmodel.EventViewModel
-import io.eflamm.notlelo.viewmodel.EventViewModelFactory
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.views.HeaderView
 
 class SettingsActivity : AppCompatActivity() {
-
-    private lateinit var binding: SettingsActivityBinding
-    private lateinit var eventsToDelete: MutableList<String>
-
-    private val eventViewModel: EventViewModel by viewModels {
-        EventViewModelFactory((application as NotleloApplication).eventRepository)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = SettingsActivityBinding.inflate(layoutInflater)
-
-        eventsToDelete = mutableListOf()
-
     }
 }
 
@@ -119,24 +99,42 @@ fun FrequentlyAskedQuestions() {
 fun About() {
     Column {
         SectionTitle(stringResource(id = R.string.settings_about))
-        Text(text = stringResource(id = R.string.settings_aboutDescription), color = colorResource(
-            id = R.color.secondary
-        ))
+        Text(text = stringResource(id = R.string.settings_aboutDescription),
+            fontSize = MaterialTheme.typography.body1.fontSize,
+            fontWeight = MaterialTheme.typography.body1.fontWeight,
+            letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+            color = MaterialTheme.typography.body1.color
+        )
         Button(onClick = {}) {
-            Text(text = stringResource(id = R.string.settings_clickHere))
+            Text(text = stringResource(id = R.string.settings_clickHere),
+                fontSize = MaterialTheme.typography.button.fontSize,
+                fontWeight = MaterialTheme.typography.button.fontWeight,
+                letterSpacing = MaterialTheme.typography.button.letterSpacing,
+                color = MaterialTheme.typography.button.color
+            )
         }
-        Text(text = stringResource(id = R.string.settings_signature), color = colorResource(
-            id = R.color.secondary
-        ))
-        Text(text = "version", color = colorResource(
-            id = R.color.secondary
-        ))
+        Text(text = stringResource(id = R.string.settings_signature),
+            fontSize = MaterialTheme.typography.body1.fontSize,
+            fontWeight = MaterialTheme.typography.body1.fontWeight,
+            letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+            color = MaterialTheme.typography.body1.color
+        )
+        Text(text = "version",
+            fontSize = MaterialTheme.typography.body1.fontSize,
+            fontWeight = MaterialTheme.typography.body1.fontWeight,
+            letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+            color = MaterialTheme.typography.body1.color
+        )
     }
 }
 
 @Composable
 fun SectionTitle(title: String) {
-    Text(text = title, fontSize = 25.sp, color = colorResource(id = R.color.secondary), modifier = Modifier.padding(start = 10.dp))
+    Text(
+        text = title,
+        fontSize = MaterialTheme.typography.h3.fontSize,
+        color = MaterialTheme.typography.h3.color,
+        modifier = Modifier.padding(start = 10.dp))
 }
 
 @Preview(showBackground = true)
