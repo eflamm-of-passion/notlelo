@@ -10,6 +10,7 @@ import androidx.lifecycle.*
 import io.eflamm.notlelo.StorageUtils
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.EventWithDays
+import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.repository.EventRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -25,6 +26,7 @@ interface IEventViewModel {
     fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Job
     fun shareEvent(context: Context, eventWithProducts: EventWithDays): Intent
     fun deleteEvents(event: List<Event>): Job
+    fun deleteProduct(product: Product): Job
 }
 
 data class EventUiState(
@@ -70,6 +72,10 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
 
     override fun deleteEvents(events: List<Event>): Job = viewModelScope.launch {
         eventRepository.deleteEvents(events)
+    }
+
+    override fun deleteProduct(product: Product): Job = viewModelScope.launch {
+        eventRepository.deleteProduct(product)
     }
 
     private fun zipEvent(context: Context, eventWithProducts: EventWithDays): File {
@@ -138,6 +144,10 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
     }
 
     override fun deleteEvents(event: List<Event>): Job = viewModelScope.launch {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteProduct(product: Product): Job {
         TODO("Not yet implemented")
     }
 

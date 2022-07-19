@@ -58,10 +58,14 @@ class EventRepository(
         return productId;
     }
 
-    @Suppress("RedundantSuspendModifier")
     @WorkerThread
     suspend fun deleteEvents(events: List<Event>) {
         eventDao.deleteByUuids(events.map { it.uuid })
+    }
+
+    @WorkerThread
+    suspend fun deleteProduct(product: Product) {
+        productDao.deleteByUuid(product.uuid)
     }
 
 }

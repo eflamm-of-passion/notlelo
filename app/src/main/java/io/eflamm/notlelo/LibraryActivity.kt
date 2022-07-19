@@ -11,6 +11,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -28,11 +29,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
 import io.eflamm.notlelo.model.*
 import io.eflamm.notlelo.ui.theme.NotleloTheme
+import io.eflamm.notlelo.ui.theme.Red
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.views.HeaderView
+import java.time.Month
 
 class LibraryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,14 +62,33 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
             ShareEventButton(context, eventWithProducts, eventViewModel)
             )
         if (eventWithProducts?.days != null) {
-            Days(eventWithProducts.days)
+            Days(eventWithProducts.days, eventViewModel)
         }
     }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
-fun Days(days: List<DayWithMeals>) {
-    days.forEach { dayWithMeals ->
+fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
+    HorizontalPager(count = days.size) { page ->
+        val dayWithMeals = days[page]
+        var monthAsString = when(dayWithMeals.day.date.month) {
+            Month.JANUARY -> stringResource(id = R.string.month_january)
+            Month.FEBRUARY -> stringResource(id = R.string.month_february)
+            Month.MARCH -> stringResource(id = R.string.month_march)
+            Month.APRIL -> stringResource(id = R.string.month_april)
+            Month.MAY -> stringResource(id = R.string.month_may)
+            Month.JUNE -> stringResource(id = R.string.month_june)
+            Month.JULY -> stringResource(id = R.string.month_july)
+            Month.AUGUST -> stringResource(id = R.string.month_august)
+            Month.SEPTEMBER -> stringResource(id = R.string.month_september)
+            Month.OCTOBER -> stringResource(id = R.string.month_october)
+            Month.NOVEMBER -> stringResource(id = R.string.month_november)
+            Month.DECEMBER -> stringResource(id = R.string.month_december)
+            else -> ""
+        }
+        val dateAsString = "${dayWithMeals.day.date.dayOfMonth} $monthAsString"
+
         Row {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -72,19 +96,19 @@ fun Days(days: List<DayWithMeals>) {
                 verticalArrangement = Arrangement.Top) {
                 Row {
                     Text(
-                        text = dayWithMeals.day.date.toString(),
+                        text = dateAsString,
                         color = MaterialTheme.typography.h3.color,
                         fontSize = MaterialTheme.typography.h3.fontSize
                     )
                 }
-                Meals(dayWithMeals.meals)
+                Meals(dayWithMeals.meals, eventViewModel)
             }
         }
     }
 }
 
 @Composable
-fun Meals(meals: List<MealWithProducts>) {
+fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel) {
     meals.forEach { mealWithProducts ->
         Row {
             Column {
@@ -95,14 +119,14 @@ fun Meals(meals: List<MealWithProducts>) {
                         fontSize = MaterialTheme.typography.h5.fontSize,
                     )
                 }
-                Products(mealWithProducts.products)
+                Products(mealWithProducts.products, eventViewModel)
             }
         }
     }
 }
 
 @Composable
-fun Products(products: List<ProductWithPictures>) {
+fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewModel) {
     Row {
         products.forEach { productWithPictures ->
             Column {
@@ -112,6 +136,7 @@ fun Products(products: List<ProductWithPictures>) {
                         color = MaterialTheme.typography.h6.color,
                         fontSize = MaterialTheme.typography.h6.fontSize,
                     )
+                    DeleteProductButton(productWithPictures, eventViewModel)
                 }
                 Pictures(productWithPictures.pictures)
             }
@@ -154,6 +179,22 @@ fun ShareEventButton(context: Context, eventToShare: EventWithDays?, eventViewMo
             contentDescription = stringResource(id = R.string.icon_desc_share_event),
             modifier = Modifier.size(35.dp),
             tint = colorResource(id = R.color.primary)
+        )
+    }
+}
+
+@Composable
+fun DeleteProductButton(productWithPictures: ProductWithPictures, eventViewModel: IEventViewModel) {
+    TextButton( onClick = {
+        if (productWithPictures != null) {
+            eventViewModel.deleteProduct(productWithPictures.product)
+        }
+    }) {
+        Icon(
+            Icons.Filled.Delete,
+            contentDescription = stringResource(id = R.string.icon_desc_delete_event),
+            modifier = Modifier.size(30.dp),
+            tint = Red
         )
     }
 }

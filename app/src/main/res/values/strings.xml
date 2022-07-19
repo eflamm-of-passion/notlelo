@@ -91,4 +91,5 @@
     <string name="icon_desc_take_picture">Prendre une photo</string>
     <string name="icon_desc_add_product">Ajouter un produit</string>
     <string name="icon_desc_share_event">Compresser et partager un évènement</string>
+    <string name="icon_desc_delete_event">Supprimer un produit</string>
 </resources>
