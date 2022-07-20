@@ -59,8 +59,10 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
         HeaderView(
             navController,
             stringResource(id = R.string.home_library),
-            ShareEventButton(context, eventWithProducts, eventViewModel)
             )
+        {
+            ShareEventButton(context, eventWithProducts, eventViewModel)
+        }
         if (eventWithProducts?.days != null) {
             Days(eventWithProducts.days, eventViewModel)
         }

@@ -21,7 +21,7 @@ import io.eflamm.notlelo.R
 import io.eflamm.notlelo.ui.theme.NotleloTheme
 
 @Composable
-fun HeaderView(navController: NavController, title: String, childComponent: Unit) {
+fun HeaderView(navController: NavController, title: String, childComponent: @Composable () -> Unit) {
     Row(modifier = Modifier
         .height(80.dp)
         .fillMaxWidth()
@@ -42,7 +42,7 @@ fun HeaderView(navController: NavController, title: String, childComponent: Unit
             color = MaterialTheme.typography.h2.color,
             modifier = Modifier.padding(start = 5.dp)
         )
-        childComponent
+        childComponent()
     }
 }
 

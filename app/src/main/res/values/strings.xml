@@ -76,9 +76,9 @@
     <string name="settings_signature">Notlelo a été développée avec 🤍 par Eflamm Ollivier</string>
     <string name="settings_clickHere">Cliquez ici !</string>
     <string name="faq_title">Foire aux questions</string>
-    <string name="faq_save_the_pictures_question">Comment archiver toutes les photos d\'un camp ?</string>
-    <string name="faq_save_the_pictures_answer1">Il suffit d\'appuyer sur le bouton </string>
-    <string name="faq_save_the_pictures_answer2">qui se trouve dans la rubrique \"Mes numéros de lot\". Une archive va être céée, et vous aurez la possibilité de la partager via un service tiers (e.g. mail, Google Drive, etc…).</string>
+    <string name="faq_archive_event_question">Comment archiver toutes les photos d\'un camp ?</string>
+    <string name="faq_archive_event_answer1">Il suffit d\'appuyer sur le bouton </string>
+    <string name="faq_archive_event_answer2">qui se trouve dans la rubrique \"Mes numéros de lot\". Une archive va être céée, et vous aurez la possibilité de la partager via un service tiers (e.g. mail, Google Drive, etc…).</string>
     <string name="faq_availableOnIOS_question">L\'application est-elle disponible sur iOS ?</string>
     <string name="faq_availableOnIOS_answer">Pour le moment Notlelo n\'est pas disponible sur l\'App Store d\'Apple. Notamment parce que les frais pour déployer une application dessus sont élevés.</string>
     <string name="faq_found_a_bug_question">J\'ai trouvé un bug dans l\'application, que dois-je faire ?</string>

@@ -2,23 +2,45 @@ package io.eflamm.notlelo
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import io.eflamm.notlelo.model.Event
+import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.NotleloTheme
+import io.eflamm.notlelo.ui.theme.Red
+import io.eflamm.notlelo.ui.theme.White
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.views.HeaderView
@@ -29,21 +51,17 @@ class SettingsActivity : AppCompatActivity() {
     }
 }
 
-
 @Composable
 fun SettingsView(navController: NavController, eventViewModel: IEventViewModel) {
-    Column(
+    LazyColumn(
         Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.white))) {
-        HeaderView(navController, stringResource(id = R.string.home_settings))
-        Box(modifier = Modifier.weight(1f)) {
+            .background(color = colorResource(id = R.color.white))
+    ) {
+        item {
+            HeaderView(navController, stringResource(id = R.string.home_settings))
             DeleteEvent(eventViewModel)
-        }
-        Box(modifier = Modifier.weight(1f)) {
             FrequentlyAskedQuestions()
-        }
-        Box(modifier = Modifier.weight(1f)) {
             About()
         }
     }
@@ -54,77 +72,166 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
     val eventsToDelete = remember { mutableStateListOf<Event>() }
     val events: List<Event>? = eventViewModel.allEvents.observeAsState().value
 
-    Column {
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+    ) {
         SectionTitle(stringResource(id = R.string.settings_deleteEvent))
-        Button(onClick = {
-            eventViewModel.deleteEvents(eventsToDelete.toList())
-            // TODO add a toast to confirm the deletion
-        }) {
-            Text(text = stringResource(id = R.string.settings_deleteEvent))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+            if(events?.isEmpty() == true) {
+                Text(
+                    text = stringResource(id = R.string.settings_noCamp),
+                    fontSize = 5.em,
+                    color = LightGrey,
+                    modifier = Modifier.wrapContentHeight(),
+                    style = TextStyle(fontStyle = FontStyle.Italic)
+                )
+            }
+            events?.forEach { event ->
+                Row(modifier = Modifier.height(40.dp)) {
+                    Checkbox(
+                        colors = CheckboxDefaults.colors(Color.LightGray),
+                        checked = eventsToDelete.contains(event),
+                        onCheckedChange = {checked ->
+                            if (checked) {
+                                if (!eventsToDelete.contains(event)) {
+                                     eventsToDelete.add(event)
+                                }
+                            } else {
+                                if(eventsToDelete.contains(event)) {
+                                    eventsToDelete.remove(event)
+                                }
+                            }
+                        })
+                        Text(
+                            text = event.name,
+                            color = colorResource(id = R.color.secondary),
+                            modifier = Modifier.wrapContentHeight()
+                        )
+                }
+            }
         }
-        events?.forEach { event ->
-            Row(modifier = Modifier.height(40.dp)) {
-                Checkbox(
-                    colors = CheckboxDefaults.colors(Color.LightGray),
-                    checked = eventsToDelete.contains(event),
-                    onCheckedChange = {checked ->
-                        if (checked) {
-                            if (!eventsToDelete.contains(event)) {
-                                 eventsToDelete.add(event)
-                            }
-                        } else {
-                            if(eventsToDelete.contains(event)) {
-                                eventsToDelete.remove(event)
-                            }
-                        }
-                    })
-                    Text(
-                        text = event.name,
-                        color = colorResource(id = R.color.secondary),
-                        modifier = Modifier.wrapContentHeight()
-                    )
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = {
+                eventViewModel.deleteEvents(eventsToDelete.toList())
+                // TODO add a toast to confirm the deletion
+                },
+                colors = if (events?.isEmpty() == true)  ButtonDefaults.buttonColors(backgroundColor = LightGrey) else ButtonDefaults.buttonColors(backgroundColor = Red),
+            ) {
+                Text(text = stringResource(id = R.string.settings_deleteEvent),
+                    fontSize = 5.em,
+                    fontFamily = MaterialTheme.typography.button.fontFamily,
+                    fontWeight = FontWeight.W300,
+                    letterSpacing = 2.sp,
+                    color = MaterialTheme.typography.button.color
+                )
+                Icon(
+                    Icons.Outlined.Delete,
+                    contentDescription = stringResource(id = R.string.settings_deleteEvent),
+                    modifier = Modifier.size(30.dp),
+                    tint = White
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun FrequentlyAskedQuestions() {
     Column {
         SectionTitle(stringResource(id = R.string.faq_title))
+        ExpandableSection(title = stringResource(id = R.string.faq_archive_event_question)) {
+            AnswerArchiveEvent()
+        }
+        ExpandableSection(title = stringResource(id = R.string.faq_availableOnIOS_question)) {
+            AnswerText(stringResource(id = R.string.faq_availableOnIOS_answer))
+        }
+        ExpandableSection(title = stringResource(id = R.string.faq_found_a_bug_question)) {
+            AnswerText(stringResource(id = R.string.faq_found_a_bug_answer))
+        }
     }
 }
 
 @Composable
-fun About() {
-    Column {
-        SectionTitle(stringResource(id = R.string.settings_about))
-        Text(text = stringResource(id = R.string.settings_aboutDescription),
-            fontSize = MaterialTheme.typography.body1.fontSize,
-            fontWeight = MaterialTheme.typography.body1.fontWeight,
-            letterSpacing = MaterialTheme.typography.body1.letterSpacing,
-            color = MaterialTheme.typography.body1.color
-        )
-        Button(onClick = {}) {
-            Text(text = stringResource(id = R.string.settings_clickHere),
-                fontSize = MaterialTheme.typography.button.fontSize,
-                fontWeight = MaterialTheme.typography.button.fontWeight,
-                letterSpacing = MaterialTheme.typography.button.letterSpacing,
-                color = MaterialTheme.typography.button.color
+fun AnswerArchiveEvent() {
+    Text(text = buildAnnotatedString {
+        append(stringResource(id = R.string.faq_archive_event_answer1))
+        appendInlineContent("shareIcon", stringResource(id = R.string.icon_desc_share_event))
+        append(stringResource(id = R.string.faq_archive_event_answer2))
+    }, inlineContent = mapOf(
+        Pair("shareIcon", InlineTextContent(
+            Placeholder(width = 2.em, height = 18.sp, placeholderVerticalAlign = PlaceholderVerticalAlign.TextTop)
+        ) {
+            Icon(
+                Icons.Filled.Share,
+                contentDescription = stringResource(id = R.string.icon_desc_share_event),
+                modifier = Modifier
+                    .size(50.dp)
+                    .background(White),
+                tint = colorResource(id = R.color.primary)
             )
         }
-        Text(text = stringResource(id = R.string.settings_signature),
-            fontSize = MaterialTheme.typography.body1.fontSize,
-            fontWeight = MaterialTheme.typography.body1.fontWeight,
-            letterSpacing = MaterialTheme.typography.body1.letterSpacing,
-            color = MaterialTheme.typography.body1.color
-        )
-        Text(text = "version",
-            fontSize = MaterialTheme.typography.body1.fontSize,
-            fontWeight = MaterialTheme.typography.body1.fontWeight,
-            letterSpacing = MaterialTheme.typography.body1.letterSpacing,
-            color = MaterialTheme.typography.body1.color
-        )
+        )), color = MaterialTheme.typography.body1.color, fontFamily = MaterialTheme.typography.body1.fontFamily, fontSize = MaterialTheme.typography.body1.fontSize)
+}
+
+@Composable
+fun AnswerText(answer: String) {
+    Text(text = answer,
+        fontSize = MaterialTheme.typography.body1.fontSize,
+        fontFamily = MaterialTheme.typography.body1.fontFamily,
+        fontWeight = MaterialTheme.typography.body1.fontWeight,
+        letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+        color = MaterialTheme.typography.body1.color
+    )
+}
+
+@Composable
+fun About() {
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        SectionTitle(stringResource(id = R.string.settings_about))
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Text(text = stringResource(id = R.string.settings_aboutDescription),
+                fontSize = MaterialTheme.typography.body1.fontSize,
+                fontFamily = MaterialTheme.typography.body1.fontFamily,
+                fontWeight = MaterialTheme.typography.body1.fontWeight,
+                letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+                color = MaterialTheme.typography.body1.color
+            )
+            Button(onClick = {
+                    //TODO
+                },
+                modifier = Modifier.height(40.dp).width(180.dp)
+            ) {
+                Text(text = stringResource(id = R.string.settings_clickHere),
+                    fontSize = 4.em,
+                    fontFamily = MaterialTheme.typography.button.fontFamily,
+                    fontWeight = FontWeight.W300,
+                    letterSpacing = 3.sp,
+                    color = MaterialTheme.typography.button.color
+                )
+            }
+            Text(text = stringResource(id = R.string.settings_signature),
+                fontSize = MaterialTheme.typography.body1.fontSize,
+                fontFamily = MaterialTheme.typography.body1.fontFamily,
+                fontWeight = MaterialTheme.typography.body1.fontWeight,
+                letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+                color = MaterialTheme.typography.body1.color
+            )
+            Text(text = "version",
+                fontSize = MaterialTheme.typography.body1.fontSize,
+                fontFamily = MaterialTheme.typography.body1.fontFamily,
+                fontWeight = MaterialTheme.typography.body1.fontWeight,
+                letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+                color = MaterialTheme.typography.body1.color
+            )
+        }
     }
 }
 
@@ -135,6 +242,35 @@ fun SectionTitle(title: String) {
         fontSize = MaterialTheme.typography.h3.fontSize,
         color = MaterialTheme.typography.h3.color,
         modifier = Modifier.padding(start = 10.dp))
+}
+
+@ExperimentalAnimationApi
+@Composable
+fun ExpandableSection(title: String, childComponent: @Composable () -> Unit) {
+    val (isExpanded, setIsExpanded) = remember { mutableStateOf(false) }
+    Card(
+        modifier = Modifier
+            .clickable {
+                setIsExpanded(!isExpanded)
+            }
+            .background(White)
+    ) {
+        Column {
+            Text(
+                text = title,
+                fontSize = MaterialTheme.typography.h6.fontSize,
+                color = MaterialTheme.typography.h6.color,
+                letterSpacing = MaterialTheme.typography.h6.letterSpacing,
+                fontFamily = MaterialTheme.typography.h6.fontFamily,
+                modifier = Modifier.background(White)
+            )
+            AnimatedVisibility(visible = isExpanded) {
+                Row(modifier = Modifier.background(White)) {
+                    childComponent()
+                }
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true)
