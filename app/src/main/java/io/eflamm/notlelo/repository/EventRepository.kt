@@ -66,6 +66,10 @@ class EventRepository(
     @WorkerThread
     suspend fun deleteProduct(product: Product) {
         productDao.deleteByUuid(product.uuid)
+
+        productDao.clearEmptyProducts()
+        mealDao.clearEmptyMeals()
+        dayDao.clearEmptyDays()
     }
 
 }

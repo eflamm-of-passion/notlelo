@@ -18,4 +18,7 @@ interface ProductDao {
 
     @Query("DELETE FROM Product WHERE uuid = (:uuid)")
     suspend fun deleteByUuid(uuid: UUID)
+
+    @Query("DELETE FROM Product WHERE id NOT IN (SELECT DISTINCT product_id FROM Picture)")
+    suspend fun clearEmptyProducts()
 }

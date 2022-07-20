@@ -13,4 +13,7 @@ interface DayDao {
     @Transaction
     @Query("SELECT * FROM Day WHERE event_id = :eventId AND date = :date")
     fun getDayByEventIdByDate(eventId: Long, date: LocalDate): Flow<Day?>
+
+    @Query("DELETE FROM Day WHERE id NOT IN (SELECT DISTINCT day_id FROM Meal)")
+    suspend fun clearEmptyDays()
 }

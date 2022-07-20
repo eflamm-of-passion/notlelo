@@ -12,4 +12,7 @@ interface MealDao {
     @Transaction
     @Query("SELECT * FROM Meal WHERE day_id = :dayId AND name = :name")
     fun getDayByEventIdByDate(dayId: Long, name: String): Flow<Meal?>
+
+    @Query("DELETE FROM Meal WHERE id NOT IN (SELECT DISTINCT meal_id FROM Product)")
+    suspend fun clearEmptyMeals()
 }
