@@ -22,10 +22,7 @@ import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -52,6 +50,7 @@ import io.eflamm.notlelo.ui.theme.Green
 import io.eflamm.notlelo.ui.theme.Red
 import io.eflamm.notlelo.viewmodel.ICameraViewModel
 import io.eflamm.notlelo.viewmodel.IEventViewModel
+import io.eflamm.notlelo.views.SelectListView
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -241,7 +240,9 @@ fun TakenPictures(cameraViewModel: ICameraViewModel) {
                             contentDescription = "",
                             placeholder = painterResource(R.drawable.ic_launcher_foreground),
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(64.dp).clip(CircleShape)
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
                         )
                     }
                 }
@@ -256,8 +257,10 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
         .fillMaxSize()
     ) {
 
+        val preDefinedListOfMeals = stringArrayResource(id = R.array.camera_meals).toMutableList()
+        val mealList = remember { preDefinedListOfMeals.toMutableStateList() }
         val (productName, setProductName) = remember { mutableStateOf("") }
-        val (mealName, setMealName) = remember { mutableStateOf("") }
+        val (mealName, setMealName) = remember { mutableStateOf(preDefinedListOfMeals[0]) }
 
         Column(modifier = Modifier
             .align(Alignment.Center)
@@ -281,12 +284,21 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
             }
             Row {
                 /* TODO list of meals*/
-                TextField(
-                    value = mealName,
-                    onValueChange = { setMealName(it) },
-                    modifier = Modifier.width(300.dp),
-                    colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
+                SelectListView(mealName, mealList,
+                    onSelect = { _, item ->
+                        setMealName(item)
+                    },
+                    onChange = { changedValue ->
+                        setMealName(changedValue)
+                        // TODO when enter then add the meal to the meal list
+                    }
                 )
+//                TextField(
+//                    value = mealName,
+//                    onValueChange = { setMealName(it) },
+//                    modifier = Modifier.width(300.dp),
+//                    colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
+//                )
             }
             Row {
                 // TODO disable the button if there is not selected event, if the field are not set

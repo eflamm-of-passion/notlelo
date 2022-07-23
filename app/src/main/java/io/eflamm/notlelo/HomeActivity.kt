@@ -178,11 +178,18 @@ fun SelectEvents(
     }
 
     Row {
-        SelectListView(selectedEventName, events.map { it.name }) { index ->
-            val newlySelectedEvent = events[index]
-            setSelectedEventName(newlySelectedEvent.name)
-            eventViewModel.updateSelectedEvent(newlySelectedEvent)
-        }
+        SelectListView(selectedEventName, events.map { it.name },
+            onSelect = { index, _ ->
+                val newlySelectedEvent = events[index]
+                setSelectedEventName(newlySelectedEvent.name)
+                eventViewModel.updateSelectedEvent(newlySelectedEvent)
+            },
+            onChange = { _ ->
+                // FIXME make this function optional
+                // do nothing
+            }
+
+        )
 
         TextButton(
             onClick = {

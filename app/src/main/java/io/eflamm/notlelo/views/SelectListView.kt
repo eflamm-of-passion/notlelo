@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 
 @Composable
-fun SelectListView(value: String, items: List<String>, onSelect: (index: Int) -> Unit) {
+fun SelectListView(value: String, items: List<String>, onSelect: (index: Int, item: String) -> Unit, onChange: (changedValue: String) -> Unit) {
     val (textFieldSize, setTextFieldSize) = remember { mutableStateOf(Size.Zero) }
     val (isExpanded, setExpanded) = remember { mutableStateOf(false) }
 
@@ -30,9 +30,10 @@ fun SelectListView(value: String, items: List<String>, onSelect: (index: Int) ->
 
     OutlinedTextField(
         value = value,
-        onValueChange = {
+        onValueChange = {   changedValue ->
             // maybe do something here
             // but I should just change the type of input
+            onChange(changedValue)
         },
         modifier = Modifier
             .width(300.dp)
@@ -54,7 +55,7 @@ fun SelectListView(value: String, items: List<String>, onSelect: (index: Int) ->
     ) {
         items.forEachIndexed { index, item ->
             DropdownMenuItem(onClick = {
-                onSelect(index)
+                onSelect(index, item)
                 setExpanded(false)
             }) {
                 Text(text = item, color = colorResource(id = android.R.color.white))
