@@ -58,7 +58,7 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
         .background(color = colorResource(id = R.color.white))) {
         HeaderView(
             navController,
-            stringResource(id = R.string.home_library),
+            event?.name ?: "",
             )
         {
             ShareEventButton(context, eventWithProducts, eventViewModel)

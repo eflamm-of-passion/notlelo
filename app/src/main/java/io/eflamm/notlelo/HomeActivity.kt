@@ -6,13 +6,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.runtime.Composable
@@ -22,16 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,6 +33,7 @@ import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.Link
 import io.eflamm.notlelo.ui.theme.NotleloTheme
 import io.eflamm.notlelo.viewmodel.*
+import io.eflamm.notlelo.views.SelectListView
 
 class HomeActivity : AppCompatActivity() {
 
@@ -169,9 +163,9 @@ fun SelectEvents(
     setDisplayAddEvent: (Boolean) -> Unit,
     eventViewModel: IEventViewModel
 ) {
-    val (isExpanded, setExpanded) = remember { mutableStateOf(false) }
-    val (selectedEventName, setSelectedEventName) = remember { mutableStateOf(events[0].name) }
-    val (textFieldSize, setTextFieldSize) = remember { mutableStateOf(Size.Zero) }
+    val (selectedEventName, setSelectedEventName) = remember {
+        mutableStateOf(eventViewModel.uiState.selectedEvent?.name ?: events[0].name)
+    }
 
     val selectedEventFromUiState: Event? = eventViewModel.uiState.selectedEvent
     selectedEventFromUiState.let {
@@ -183,53 +177,13 @@ fun SelectEvents(
         }
     }
 
-    fun onSelectEvent(event: Event) {
-        setSelectedEventName(event.name)
-        eventViewModel.updateSelectedEvent(event)
-
-    }
-
     Row {
-        val icon = if (isExpanded)
-            Icons.Filled.ArrowDropUp
-        else
-            Icons.Filled.ArrowDropDown
-
-        OutlinedTextField(
-            value = selectedEventName,
-            onValueChange = {
-                // maybe do something here
-                            // but I should just change the type of input
-            },
-            modifier = Modifier
-                .width(300.dp)
-                .onGloballyPositioned { coordinates ->
-                    //This value is used to assign to the DropDown the same width
-                    setTextFieldSize(coordinates.size.toSize())
-                },
-            label = {Text("Label")},
-            trailingIcon = {
-                Icon(icon,"contentDescription", Modifier.clickable { setExpanded(!isExpanded) }, tint = colorResource(id = android.R.color.darker_gray))
-            },
-            colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
-        )
-
-        DropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = { setExpanded(false) },
-            modifier = Modifier
-                .width(with(LocalDensity.current){textFieldSize.width.toDp()})
-        ) {
-            events.forEach { event ->
-                DropdownMenuItem(onClick = {
-                    setSelectedEventName(event.name)
-                    onSelectEvent(event)
-                    setExpanded(false)
-                }) {
-                    Text(text = event.name, color = colorResource(id = android.R.color.white))
-                }
-            }
+        SelectListView(selectedEventName, events.map { it.name }) { index ->
+            val newlySelectedEvent = events[index]
+            setSelectedEventName(newlySelectedEvent.name)
+            eventViewModel.updateSelectedEvent(newlySelectedEvent)
         }
+
         TextButton(
             onClick = {
             setDisplayAddEvent(true)
