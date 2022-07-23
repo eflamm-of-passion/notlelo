@@ -1,5 +1,6 @@
 package io.eflamm.notlelo
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.Placeholder
@@ -190,6 +192,7 @@ fun AnswerText(answer: String) {
 
 @Composable
 fun About() {
+    val context = LocalContext.current
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier.fillMaxWidth()
@@ -205,7 +208,10 @@ fun About() {
                 color = MaterialTheme.typography.body1.color
             )
             Button(onClick = {
-                    //TODO
+                    val intent = sendMailToMe()
+                    if(intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
                 },
                 modifier = Modifier.height(40.dp).width(180.dp)
             ) {
@@ -271,6 +277,20 @@ fun ExpandableSection(title: String, childComponent: @Composable () -> Unit) {
             }
         }
     }
+}
+
+private fun sendMailToMe(): Intent {
+    val myMailAddressFirstPart = "eflamm.ollivier"
+    val myMailAddressSecondPart = "@gmail.com"
+    val myMailAddressFull = myMailAddressFirstPart + myMailAddressSecondPart
+    // FIXME choose only mail app
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "message/rfc822"
+        putExtra(Intent.EXTRA_EMAIL, myMailAddressFull)
+        putExtra(Intent.EXTRA_SUBJECT, "[NOTLELO]")
+    }
+    // TODO add information about the smartphone and the OS
+    return intent
 }
 
 @Preview(showBackground = true)
