@@ -6,15 +6,6 @@ import java.time.LocalDate
 
 @ProvidedTypeConverter
 class DataConverter {
-//    @TypeConverter
-//    fun fromTimestamp(value: Long?): LocalDate? {
-//        return value?.let {  Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate() }
-//    }
-//
-//    @TypeConverter
-//    fun dateToTimestamp(date: LocalDate?): Long? {
-//        return date?.toEpochDay()
-//    }
 
     @TypeConverter
     fun toDate(dateString: String?): LocalDate? {

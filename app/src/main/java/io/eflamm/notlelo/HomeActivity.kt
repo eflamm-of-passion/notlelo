@@ -58,6 +58,10 @@ class HomeActivity : AppCompatActivity() {
             CameraViewModelFactory()
         }
 
+        val userPreferencesViewModel: UserPreferencesViewModel by viewModels {
+            UserPreferencesViewModelFactory((application as NotleloApplication).userPreferencesRepository)
+        }
+
         val applicationTitle = getString(R.string.lowercase_app_name)
 
         setContent {
@@ -67,7 +71,7 @@ class HomeActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    NotleloApp(applicationTitle, eventViewModel, cameraViewModel)
+                    NotleloApp(applicationTitle, eventViewModel, cameraViewModel, userPreferencesViewModel)
                 }
             }
         }
@@ -78,13 +82,14 @@ class HomeActivity : AppCompatActivity() {
 fun NotleloApp(
     applicationTitle: String,
     eventViewModel: IEventViewModel,
-    cameraViewModel: CameraViewModel
+    cameraViewModel: CameraViewModel,
+    userPreferencesViewModel: UserPreferencesViewModel
 ) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
         composable(route = "camera"){
-            CameraView(navController, eventViewModel, cameraViewModel)
+            CameraView(navController, eventViewModel, cameraViewModel, userPreferencesViewModel)
         }
         composable(route = "home"){
             HomeView( navController,  applicationTitle,  eventViewModel)
@@ -93,7 +98,7 @@ fun NotleloApp(
             LibraryView( navController, eventViewModel)
         }
         composable(route = "settings"){
-            SettingsView( navController, eventViewModel)
+            SettingsView( navController, eventViewModel, userPreferencesViewModel)
         }
     }
 }
@@ -126,13 +131,13 @@ fun HomeView(
     val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
     val (events, setEvents) = remember { mutableStateOf(emptyList<Event>()) }
 
-    eventViewModel.allEvents.observeAsState().value?.let { events ->
+    eventViewModel.allEvents.observeAsState().value?.let { e ->
         // load the list, and set the selected event with the first element of the list
-        setEvents(events)
+        setEvents(e)
         val selectedEvent: Event? = eventViewModel.uiState.selectedEvent
-        if(selectedEvent == null && events.isNotEmpty()) {
+        if(selectedEvent == null && e.isNotEmpty()) {
             // TODO should use the event with the last update, or the favorite, I don't know yet, instead of first
-            eventViewModel.updateSelectedEvent(events[0])
+            eventViewModel.updateSelectedEvent(e[0])
         }
     }
 
@@ -205,7 +210,7 @@ fun SelectEvents(
                 setSelectedEventName(newlySelectedEvent.name)
                 eventViewModel.updateSelectedEvent(newlySelectedEvent)
             },
-            onChange = { _ ->
+            onChange = {
                 // FIXME make this function optional
                 // do nothing
             }

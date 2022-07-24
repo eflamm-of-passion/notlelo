@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.util.Size
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +43,7 @@ import io.eflamm.notlelo.ui.theme.Green
 import io.eflamm.notlelo.ui.theme.Red
 import io.eflamm.notlelo.viewmodel.ICameraViewModel
 import io.eflamm.notlelo.viewmodel.IEventViewModel
+import io.eflamm.notlelo.viewmodel.IUserPreferencesViewModel
 import io.eflamm.notlelo.views.SelectListView
 import java.io.File
 import java.text.SimpleDateFormat
@@ -69,11 +72,12 @@ class CameraActivity : AppCompatActivity() {
 }
 
 @Composable
-fun CameraView(navController: NavController, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
+fun CameraView(navController: NavController, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
     val context = LocalContext.current
     val (isDisplayingSaveProductModal, setDisplayingSaveProductModal) = remember { mutableStateOf(false) }
     val outputDirectory = File(LocalContext.current.cacheDir.absolutePath)
-    val imageCapture: ImageCapture = remember { ImageCapture.Builder().build() }
+    var resolutionFromUserPreference = userPreferencesViewModel.pictureResolution.observeAsState().value // TODO get the value synchronously probably, or pass it from the home page
+    val imageCapture: ImageCapture = remember { ImageCapture.Builder().setTargetResolution(mapSizeFromResolution(resolutionFromUserPreference ?: 480)).build()}
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -118,6 +122,14 @@ fun CameraView(navController: NavController, eventViewModel: IEventViewModel, ca
     }
 }
 
+private fun mapSizeFromResolution(resolution: Int): Size {
+    return when(resolution) {
+        480 -> Size(720, 480)
+        720 -> Size(1280, 720)
+        1080 -> Size(1920, 1080)
+        else -> Size(720, 480)
+    }
+}
 
 @Composable
 fun CameraPreview(imageCapture: ImageCapture) {

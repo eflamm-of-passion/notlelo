@@ -3,7 +3,7 @@ buildscript {
     ext {
         compose_version = '1.1.1'
     }
-    ext.kotlin_version = '1.6.10'
+    ext.kotlin_version = '1.7.0'
 
     repositories {
         google()
@@ -19,16 +19,17 @@ buildscript {
 }
 ext {
     core = '1.7.0'
-    activityVersion = '1.4.0'
-    appCompatVersion = '1.4.0'
-    constraintLayoutVersion = '2.1.2'
+    activityVersion = '1.5.0'
+    appCompatVersion = '1.4.2'
+    constraintLayoutVersion = '2.1.4'
     coreTestingVersion = '2.1.0'
     coroutines = '1.6.0'
-    lifecycleVersion = '2.4.0'
-    materialVersion = '1.4.0'
+    lifecycleVersion = '2.5.0'
+    materialVersion = '1.6.1'
+    datastorePreference = '1.0.0'
     roomVersion = '2.4.2'
-    nav_version = '2.4.1'
-    camerax_version = "1.0.2"
+    nav_version = '2.5.0'
+    camerax_version = "1.1.0"
     camerax_view_version = "1.0.0-alpha32"
     gsonVersion = "2.9.0"
     coilVersion = "2.0.0-rc01"
@@ -42,7 +43,7 @@ ext {
     mockitoKotlinVersion = '4.0.0'
 
     // ak permission
-    accompanistVersion = '0.24.8-beta'
+    accompanistVersion = '0.24.13-rc'
 }
 
 

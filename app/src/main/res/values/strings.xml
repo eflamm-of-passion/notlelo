@@ -71,6 +71,9 @@
     <string name="settings_delete">Supprimer</string>
     <string name="settings_noCamp">Aucun camp créé</string>
     <string name="settings_deleteSuccess">Les camps ont bien été supprimés</string>
+    <string name="settings_picture_resolution">Résolution des photos</string>
+    <string name="settings_picture_resolution_description">La résolution définie la qualité et la taille des photos prises.</string>
+    <string name="settings_picture_resolution_value">Résolution choisie : %1$sp</string>
     <string name="settings_about">Contact</string>
     <string name="settings_aboutDescription">Si vous souhaitez signaler un problème, donner des suggestions d\'améliorations ou pour autre chose :</string>
     <string name="settings_signature">Notlelo a été développée avec 🤍 par Eflamm Ollivier</string>

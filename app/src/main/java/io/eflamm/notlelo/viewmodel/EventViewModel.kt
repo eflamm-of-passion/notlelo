@@ -155,11 +155,9 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
 
 class EventViewModelFactory(private val eventRepository: EventRepository): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(EventViewModel::class.java)) {
-            // TODO should I let the selected event to null, instead of passing it in the parameters
-            @Suppress("UNCHECKED_CAST")
+        // TODO should I let the selected event to null, instead of passing it in the parameters
+        if(modelClass.isAssignableFrom(EventViewModel::class.java))
             return EventViewModel(eventRepository) as T
-        }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

@@ -19,7 +19,7 @@ data class CameraUiState(
     var takenPicturesPath : MutableList<String>
 )
 
-class CameraViewModel: ViewModel(), ICameraViewModel {
+class CameraViewModel(): ViewModel(), ICameraViewModel {
 
     override var cameraUiState by mutableStateOf(CameraUiState(mutableStateListOf()))
         private set
@@ -40,6 +40,7 @@ class CameraViewModel: ViewModel(), ICameraViewModel {
     override fun takePicture() {
         TODO("Not yet implemented")
     }
+
 }
 
 class CameraViewModelFactory(): ViewModelProvider.Factory {

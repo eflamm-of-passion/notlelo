@@ -1,8 +1,6 @@
 package io.eflamm.notlelo
 
 import android.content.Intent
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -15,11 +13,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,17 +39,13 @@ import io.eflamm.notlelo.ui.theme.NotleloTheme
 import io.eflamm.notlelo.ui.theme.Red
 import io.eflamm.notlelo.ui.theme.White
 import io.eflamm.notlelo.viewmodel.IEventViewModel
+import io.eflamm.notlelo.viewmodel.IUserPreferencesViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
+import io.eflamm.notlelo.viewmodel.MockUserPreferencesViewModel
 import io.eflamm.notlelo.views.HeaderView
 
-class SettingsActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-}
-
 @Composable
-fun SettingsView(navController: NavController, eventViewModel: IEventViewModel) {
+fun SettingsView(navController: NavController, eventViewModel: IEventViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
     LazyColumn(
         Modifier
             .fillMaxSize()
@@ -63,6 +54,7 @@ fun SettingsView(navController: NavController, eventViewModel: IEventViewModel) 
         item {
             HeaderView(navController, stringResource(id = R.string.home_settings))
             DeleteEvent(eventViewModel)
+            CameraSettings(userPreferencesViewModel)
             FrequentlyAskedQuestions()
             About()
         }
@@ -140,6 +132,54 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
     }
 }
 
+@Composable
+fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
+    var resolutionFromUserPreference = userPreferencesViewModel.pictureResolution.observeAsState().value
+    var sliderPosition by remember { mutableStateOf(0f)}
+    var resolution by remember { mutableStateOf(resolutionFromUserPreference ?: 480)}
+    SectionTitle( stringResource(id = R.string.settings_picture_resolution))
+    Text(text = stringResource(id = R.string.settings_picture_resolution_description),
+        fontSize = MaterialTheme.typography.body1.fontSize,
+        fontFamily = MaterialTheme.typography.body1.fontFamily,
+        fontWeight = MaterialTheme.typography.body1.fontWeight,
+        letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+        color = MaterialTheme.typography.body1.color
+    )
+    Text(text = stringResource(id = R.string.settings_picture_resolution_value, "$resolution"),
+        fontSize = MaterialTheme.typography.body1.fontSize,
+        fontFamily = MaterialTheme.typography.body1.fontFamily,
+        fontWeight = MaterialTheme.typography.body1.fontWeight,
+        letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+        color = MaterialTheme.typography.body1.color
+    )
+    Slider(
+        value = sliderPositionFromResolution(resolution),
+        valueRange = 0f..2f,
+        steps = 1,
+        onValueChange = { position ->
+            sliderPosition = position
+        },
+        onValueChangeFinished = {
+            resolution = when(sliderPosition) {
+                0f -> 480
+                1f -> 720
+                2f -> 1080
+                else -> 480
+            }
+            userPreferencesViewModel.updatePictureResolution(resolution ?: 480)
+        }
+    )
+}
+
+private fun sliderPositionFromResolution(pictureResolution: Int): Float {
+    return when(pictureResolution) {
+        480 -> 0f
+        720 -> 1f
+        1080 -> 2f
+        else -> 0f
+    }
+}
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun FrequentlyAskedQuestions() {
@@ -213,7 +253,9 @@ fun About() {
                         context.startActivity(intent)
                     }
                 },
-                modifier = Modifier.height(40.dp).width(180.dp)
+                modifier = Modifier
+                    .height(40.dp)
+                    .width(180.dp)
             ) {
                 Text(text = stringResource(id = R.string.settings_clickHere),
                     fontSize = 4.em,
@@ -295,9 +337,10 @@ private fun sendMailToMe(): Intent {
 
 @Preview(showBackground = true)
 @Composable
-fun previewActivity() {
+fun PreviewActivity() {
     val eventViewModel: IEventViewModel = MockEventViewModel()
+    val userPreferencesViewModel: IUserPreferencesViewModel = MockUserPreferencesViewModel()
     NotleloTheme {
-        SettingsView(rememberNavController(), eventViewModel)
+        SettingsView(rememberNavController(), eventViewModel, userPreferencesViewModel)
     }
 }
