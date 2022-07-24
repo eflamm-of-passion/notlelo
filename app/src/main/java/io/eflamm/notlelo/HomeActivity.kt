@@ -1,9 +1,12 @@
 package io.eflamm.notlelo
 
+import android.Manifest
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,15 +28,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
 import io.eflamm.notlelo.model.Event
-import io.eflamm.notlelo.model.Link
 import io.eflamm.notlelo.ui.theme.NotleloTheme
 import io.eflamm.notlelo.viewmodel.*
 import io.eflamm.notlelo.views.SelectListView
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
+data class Link(val title: String, val route: String, val onClick: (route: String) -> Unit)
 
 class HomeActivity : AppCompatActivity() {
 
@@ -49,11 +59,6 @@ class HomeActivity : AppCompatActivity() {
         }
 
         val applicationTitle = getString(R.string.lowercase_app_name)
-        val links: List<Link> = listOf(
-            Link(getString(R.string.home_camera), "camera"),
-            Link(getString(R.string.home_library), "library"),
-            Link(getString(R.string.home_settings), "settings")
-        )
 
         setContent {
             NotleloTheme {
@@ -62,7 +67,7 @@ class HomeActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    NotleloApp(applicationTitle, links, eventViewModel, cameraViewModel)
+                    NotleloApp(applicationTitle, eventViewModel, cameraViewModel)
                 }
             }
         }
@@ -72,7 +77,6 @@ class HomeActivity : AppCompatActivity() {
 @Composable
 fun NotleloApp(
     applicationTitle: String,
-    links: List<Link>,
     eventViewModel: IEventViewModel,
     cameraViewModel: CameraViewModel
 ) {
@@ -83,7 +87,7 @@ fun NotleloApp(
             CameraView(navController, eventViewModel, cameraViewModel)
         }
         composable(route = "home"){
-            HomeView( navController,  applicationTitle,  links, eventViewModel)
+            HomeView( navController,  applicationTitle,  eventViewModel)
         }
         composable(route = "library"){
             LibraryView( navController, eventViewModel)
@@ -95,13 +99,30 @@ fun NotleloApp(
 }
 
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeView(
     navController: NavController,
     applicationTitle: String,
-    links: List<Link>,
     eventViewModel: IEventViewModel
 ) {
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+    val links: List<Link> = listOf(
+        Link(stringResource(R.string.home_camera), "camera") { route ->
+            when(cameraPermissionState.status) {
+                PermissionStatus.Granted -> {
+                    navController.navigate(route)
+                }
+                else -> {
+                    // FIXME if denied stay on the home page then display toast to explain
+                    cameraPermissionState.launchPermissionRequest().also { navController.navigate(route) }
+                }
+            }
+        },
+        Link(stringResource(R.string.home_library), "library") {route -> navController.navigate(route)},
+        Link(stringResource(R.string.home_settings), "settings") {route -> navController.navigate(route)}
+    )
+
     val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
     val (events, setEvents) = remember { mutableStateOf(emptyList<Event>()) }
 
@@ -149,7 +170,7 @@ fun HomeView(
                 }
 
                 for(link in links) {
-                    LinkToPage(navController, link)
+                    LinkToPage(link)
                 }
 
             }
@@ -242,10 +263,10 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewMo
 }
 
 @Composable
-fun LinkToPage(navigateController: NavController, link: Link) {
+fun LinkToPage(link: Link) {
     Row {
         TextButton(onClick = {
-           navigateController.navigate(link.route)
+            link.onClick(link.route)
        }) {
            Text(
                text = link.title,
@@ -262,13 +283,14 @@ fun LinkToPage(navigateController: NavController, link: Link) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewHeader() {
-    val links: List<Link> = listOf(
-        Link(stringResource(id = R.string.home_camera), "camera"),
-        Link(stringResource(id = R.string.home_library), "library"),
-        Link(stringResource(id = R.string.home_settings), "settings")
-    )
     val eventViewModel: IEventViewModel = MockEventViewModel()
     NotleloTheme {
-        HomeView(rememberNavController(), "notlelo", links= links, eventViewModel)
+        HomeView(rememberNavController(), "notlelo", eventViewModel)
+    }
+}
+
+suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
+    ProcessCameraProvider.getInstance(this).also { cameraProvider ->
+        cameraProvider.addListener({continuation.resume(cameraProvider.get())}, ContextCompat.getMainExecutor(this))
     }
 }
