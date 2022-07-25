@@ -46,6 +46,9 @@ import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.IUserPreferencesViewModel
 import io.eflamm.notlelo.views.SelectListView
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -209,15 +212,15 @@ fun TakenPictures(cameraViewModel: ICameraViewModel) {
 
 @Composable
 fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
+    val preDefinedListOfMeals = stringArrayResource(id = R.array.camera_meals).toMutableList()
+    val mealList = remember { preDefinedListOfMeals.toMutableStateList() }
+    val (productName, setProductName) = remember { mutableStateOf("") }
+    val (mealName, setMealName) = remember { mutableStateOf(preDefinedListOfMeals[0]) }
+    val appFolder = LocalContext.current.filesDir
+
     Box(modifier = Modifier
         .fillMaxSize()
     ) {
-
-        val preDefinedListOfMeals = stringArrayResource(id = R.array.camera_meals).toMutableList()
-        val mealList = remember { preDefinedListOfMeals.toMutableStateList() }
-        val (productName, setProductName) = remember { mutableStateOf("") }
-        val (mealName, setMealName) = remember { mutableStateOf(preDefinedListOfMeals[0]) }
-
         Column(modifier = Modifier
             .align(Alignment.Center)
             .width(400.dp)
@@ -267,7 +270,7 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
                         colors = ButtonDefaults.buttonColors(backgroundColor = Green),
                         onClick = {
                             setDisplayingSaveProductModal(false)
-                            saveProduct(productName, mealName, eventViewModel, cameraViewModel)
+                            saveProduct(appFolder, productName, mealName, eventViewModel, cameraViewModel)
                         }
                     ) {
                         Text(text = stringResource(id = R.string.camera_validate), fontSize = MaterialTheme.typography.button.fontSize, color = MaterialTheme.typography.button.color)
@@ -302,11 +305,19 @@ private fun takePhoto(context: Context, imageCapture: ImageCapture, cameraViewMo
     )
 }
 
-private fun saveProduct(productName: String, mealName: String, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
+private fun saveProduct(appFolder: File, productName: String, mealName: String, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
     val selectedEvent: Event? = eventViewModel.uiState.selectedEvent
     if(selectedEvent != null) {
+        // TODO probably move this part to the view model layer
         val picturePaths = cameraViewModel.cameraUiState.takenPicturesPath.toList() // toList is needed to create a copy of the list, otherwise the state list is lost in the process
-        eventViewModel.insertFullProduct(selectedEvent.id, mealName, productName, picturePaths)
+        val savedPicturePaths = picturePaths.map { cachedPicturePath ->
+            val sourcePath = Paths.get(cachedPicturePath)
+            val targetFile = File(appFolder, SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.FRANCE).format(System.currentTimeMillis()) + ".jpg")
+            val targetPath = Paths.get(targetFile.path)
+            Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING)
+            targetPath.toString()
+        }
+        eventViewModel.insertFullProduct(selectedEvent.id, mealName, productName, savedPicturePaths)
         cameraViewModel.removeAllPictures()
     }
 }
