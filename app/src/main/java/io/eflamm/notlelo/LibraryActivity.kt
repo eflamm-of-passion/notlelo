@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -50,6 +52,7 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
 
     val context = LocalContext.current
     val event: Event? = eventViewModel.uiState.selectedEvent
+    val fullScreenPicture: Picture? = eventViewModel.uiState.selectedPicture
     val eventWithProducts: EventWithDays? =
         event?.let { eventViewModel.eventWithProducts(it.id).observeAsState().value }
 
@@ -67,6 +70,9 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
             Days(eventWithProducts.days, eventViewModel)
         }
     }
+    if (fullScreenPicture != null)
+        DisplayFullscreenPicture(fullScreenPicture, eventViewModel)
+
 }
 
 @OptIn(ExperimentalPagerApi::class)
@@ -111,17 +117,19 @@ fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
 
 @Composable
 fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel) {
-    meals.forEach { mealWithProducts ->
-        Row {
-            Column {
-                Row {
-                    Text(
-                        text = mealWithProducts.meal.name,
-                        color = MaterialTheme.typography.h5.color,
-                        fontSize = MaterialTheme.typography.h5.fontSize,
-                    )
+    LazyColumn {
+        items(meals) { mealWithProducts ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    Row {
+                        Text(
+                            text = mealWithProducts.meal.name,
+                            color = MaterialTheme.typography.h5.color,
+                            fontSize = MaterialTheme.typography.h5.fontSize,
+                        )
+                    }
+                    Products(mealWithProducts.products, eventViewModel)
                 }
-                Products(mealWithProducts.products, eventViewModel)
             }
         }
     }
@@ -140,29 +148,33 @@ fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewMode
                     )
                     DeleteProductButton(productWithPictures, eventViewModel)
                 }
-                Pictures(productWithPictures.pictures)
+                Pictures(productWithPictures.pictures, eventViewModel)
             }
         }
     }
 }
 
 @Composable
-fun Pictures(pictures: List<Picture>) {
+fun Pictures(pictures: List<Picture>, eventViewModel: IEventViewModel) {
     Row(modifier = Modifier.padding(5.dp), horizontalArrangement = Arrangement.Start) {
         pictures.forEach { picture ->
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(picture.path)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "",
-                placeholder = painterResource(R.drawable.ic_launcher_foreground),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(125.dp)
-                    .padding(5.dp)
-                    .clip(RoundedCornerShape(7.dp))
-            )
+            TextButton(onClick = {
+                eventViewModel.updateSelectedPicture(picture)
+            }) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(picture.path)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "",
+                    placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(125.dp)
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(7.dp))
+                )
+            }
         }
     }
 }
@@ -198,6 +210,27 @@ fun DeleteProductButton(productWithPictures: ProductWithPictures, eventViewModel
             modifier = Modifier.size(30.dp),
             tint = Red
         )
+    }
+}
+
+@Composable
+fun DisplayFullscreenPicture(pictureToDisplay: Picture, eventViewModel: IEventViewModel) {
+    TextButton(modifier = Modifier.fillMaxSize(), onClick = { eventViewModel.updateSelectedPicture(null) }) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(pictureToDisplay.path)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "",
+                placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(5.dp)
+                    .clip(RoundedCornerShape(7.dp))
+            )
+        }
     }
 }
 

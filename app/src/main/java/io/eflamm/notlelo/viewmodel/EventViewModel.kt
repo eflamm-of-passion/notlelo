@@ -10,6 +10,7 @@ import androidx.lifecycle.*
 import io.eflamm.notlelo.StorageUtils
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.EventWithDays
+import io.eflamm.notlelo.model.Picture
 import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.repository.EventRepository
 import kotlinx.coroutines.Job
@@ -20,6 +21,7 @@ import java.io.File
 interface IEventViewModel {
     val uiState: EventUiState
     fun updateSelectedEvent(event: Event)
+    fun updateSelectedPicture(picture: Picture?)
     val allEvents: LiveData<List<Event>>
     fun eventWithProducts(id: Long): LiveData<EventWithDays>
     fun insertEvent(event: Event): Job
@@ -30,16 +32,20 @@ interface IEventViewModel {
 }
 
 data class EventUiState(
-    var selectedEvent : Event?
+    var selectedEvent : Event?,
+    var selectedPicture : Picture?
 )
 
 class EventViewModel(private val eventRepository: EventRepository ): ViewModel(), IEventViewModel {
 
-    override var uiState by mutableStateOf(EventUiState(selectedEvent = null))
+    override var uiState by mutableStateOf(EventUiState(selectedEvent = null, selectedPicture = null))
         private set
 
     override fun updateSelectedEvent(event: Event) {
             uiState.selectedEvent = event
+    }
+    override fun updateSelectedPicture(picture: Picture?) {
+        uiState.selectedPicture = picture
     }
 
     override val allEvents = eventRepository.allEvents.asLiveData()
@@ -117,10 +123,14 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
 }
 
 class MockEventViewModel(): ViewModel(), IEventViewModel {
-    override val uiState = EventUiState(null)
+    override val uiState = EventUiState(null, null)
 
     override fun updateSelectedEvent(event: Event) {
         // do nothing
+    }
+
+    override fun updateSelectedPicture(picture: Picture?) {
+        TODO("Not yet implemented")
     }
 
     override val allEvents = liveData { emit(listOf( Event("Camp bleu"), Event("Camp rouge"))) }
