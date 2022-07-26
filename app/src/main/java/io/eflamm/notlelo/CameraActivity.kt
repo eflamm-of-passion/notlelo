@@ -1,11 +1,8 @@
 package io.eflamm.notlelo
 
-import android.Manifest
 import android.content.Context
-import android.os.Bundle
 import android.util.Log
 import android.util.Size
-import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -55,31 +52,11 @@ import java.util.*
 
 // source : https://developer.android.com/codelabs/camerax-getting-started#0
 
-class CameraActivity : AppCompatActivity() {
-
-    private lateinit var outputDirectory: File
-    private val _authority = "io.eflamm.notlelo.fileprovider"
-    private lateinit var selectedEvent: Event
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
-
-
-    companion object {
-        private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-    }
-}
-
 @Composable
 fun CameraView(navController: NavController, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
     val context = LocalContext.current
     val (isDisplayingSaveProductModal, setDisplayingSaveProductModal) = remember { mutableStateOf(false) }
-    val outputDirectory = File(LocalContext.current.cacheDir.absolutePath)
-    var resolutionFromUserPreference = userPreferencesViewModel.pictureResolution.observeAsState().value // TODO get the value synchronously probably, or pass it from the home page
+    val resolutionFromUserPreference = userPreferencesViewModel.pictureResolution.observeAsState().value // TODO get the value synchronously probably, or pass it from the home page
     val imageCapture: ImageCapture = remember { ImageCapture.Builder().setTargetResolution(mapSizeFromResolution(resolutionFromUserPreference ?: 480)).build()}
 
     Column(modifier = Modifier
@@ -282,7 +259,6 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
 }
 
 private fun takePhoto(context: Context, imageCapture: ImageCapture, cameraViewModel: ICameraViewModel ) {
-    // TODO decrease the photo quality, because it takes too much space
     val cacheFolder = context.cacheDir.absolutePath
     val photoFile = File(
         cacheFolder,

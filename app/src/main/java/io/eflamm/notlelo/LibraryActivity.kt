@@ -1,8 +1,6 @@
 package io.eflamm.notlelo
 
 import android.content.Context
-import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,12 +39,6 @@ import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.views.HeaderView
 import java.time.Month
 
-class LibraryActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-}
-
 @Composable
 fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
 
@@ -80,7 +72,7 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
 fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
     HorizontalPager(count = days.size) { page ->
         val dayWithMeals = days[page]
-        var monthAsString = when(dayWithMeals.day.date.month) {
+        val monthAsString = when(dayWithMeals.day.date.month) {
             Month.JANUARY -> stringResource(id = R.string.month_january)
             Month.FEBRUARY -> stringResource(id = R.string.month_february)
             Month.MARCH -> stringResource(id = R.string.month_march)
@@ -200,9 +192,7 @@ fun ShareEventButton(context: Context, eventToShare: EventWithDays?, eventViewMo
 @Composable
 fun DeleteProductButton(productWithPictures: ProductWithPictures, eventViewModel: IEventViewModel) {
     TextButton( onClick = {
-        if (productWithPictures != null) {
-            eventViewModel.deleteProduct(productWithPictures.product)
-        }
+        eventViewModel.deleteProduct(productWithPictures.product)
     }) {
         Icon(
             Icons.Filled.Delete,

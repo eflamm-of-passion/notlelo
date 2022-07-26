@@ -53,16 +53,16 @@ class HomeActivity : AppCompatActivity() {
         val eventViewModel: EventViewModel by viewModels {
             EventViewModelFactory((application as NotleloApplication).eventRepository)
         }
-
         val cameraViewModel: CameraViewModel by viewModels {
             CameraViewModelFactory()
         }
-
         val userPreferencesViewModel: UserPreferencesViewModel by viewModels {
             UserPreferencesViewModelFactory((application as NotleloApplication).userPreferencesRepository)
         }
 
         val applicationTitle = getString(R.string.lowercase_app_name)
+
+        eventViewModel.clearCache(application.cacheDir)
 
         setContent {
             NotleloTheme {

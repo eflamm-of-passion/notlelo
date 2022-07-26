@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModelProvider
 
 interface ICameraViewModel {
     val cameraUiState: CameraUiState
-    fun addPicture(location: String)
-    fun removePicture(location: String)
+    fun addPicture(path: String)
+    fun removePicture(path: String)
     fun removeAllPictures()
     fun takePicture()
 }
@@ -19,17 +19,17 @@ data class CameraUiState(
     var takenPicturesPath : MutableList<String>
 )
 
-class CameraViewModel(): ViewModel(), ICameraViewModel {
+class CameraViewModel: ViewModel(), ICameraViewModel {
 
     override var cameraUiState by mutableStateOf(CameraUiState(mutableStateListOf()))
         private set
 
-    override fun addPicture(location: String) {
-        cameraUiState.takenPicturesPath.add(location)
+    override fun addPicture(path: String) {
+        cameraUiState.takenPicturesPath.add(path)
     }
 
-    override fun removePicture(location: String) {
-        cameraUiState.takenPicturesPath.remove(location)
+    override fun removePicture(path: String) {
+        cameraUiState.takenPicturesPath.remove(path)
     }
 
     override fun removeAllPictures() {
@@ -43,7 +43,8 @@ class CameraViewModel(): ViewModel(), ICameraViewModel {
 
 }
 
-class CameraViewModelFactory(): ViewModelProvider.Factory {
+class CameraViewModelFactory: ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return CameraViewModel() as T
     }

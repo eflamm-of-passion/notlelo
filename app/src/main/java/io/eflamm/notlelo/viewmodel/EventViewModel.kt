@@ -24,11 +24,12 @@ interface IEventViewModel {
     fun updateSelectedPicture(picture: Picture?)
     val allEvents: LiveData<List<Event>>
     fun eventWithProducts(id: Long): LiveData<EventWithDays>
-    fun insertEvent(event: Event): Job
+    fun insertEvent(eventToCreate: Event): Job
     fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Job
     fun shareEvent(context: Context, eventWithProducts: EventWithDays): Intent
-    fun deleteEvents(event: List<Event>): Job
+    fun deleteEvents(events: List<Event>): Job
     fun deleteProduct(product: Product): Job
+    fun clearCache(cacheDirectory: File): Job
 }
 
 data class EventUiState(
@@ -84,6 +85,10 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
         eventRepository.deleteProduct(product)
     }
 
+    override fun clearCache(cacheDirectory: File): Job = viewModelScope.launch {
+        cacheDirectory.deleteRecursively()
+    }
+
     private fun zipEvent(context: Context, eventWithProducts: EventWithDays): File {
         val temporaryPictureFiles = mutableListOf<File>()
         // FIXME is there a way to have a better complexity. Using a tree, recursive, coroutine ?
@@ -122,7 +127,8 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
 
 }
 
-class MockEventViewModel(): ViewModel(), IEventViewModel {
+@Suppress("UNREACHABLE_CODE")
+class MockEventViewModel: ViewModel(), IEventViewModel {
     override val uiState = EventUiState(null, null)
 
     override fun updateSelectedEvent(event: Event) {
@@ -140,7 +146,7 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
         return liveData {  }
     }
 
-    override fun insertEvent(event: Event): Job = viewModelScope.launch {
+    override fun insertEvent(eventToCreate: Event): Job = viewModelScope.launch {
         // do nothing
     }
 
@@ -153,7 +159,7 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
         return Intent()
     }
 
-    override fun deleteEvents(event: List<Event>): Job = viewModelScope.launch {
+    override fun deleteEvents(events: List<Event>): Job = viewModelScope.launch {
         TODO("Not yet implemented")
     }
 
@@ -161,8 +167,13 @@ class MockEventViewModel(): ViewModel(), IEventViewModel {
         TODO("Not yet implemented")
     }
 
+    override fun clearCache(cacheDirectory: File): Job {
+        TODO("Not yet implemented")
+    }
+
 }
 
+@Suppress("UNCHECKED_CAST")
 class EventViewModelFactory(private val eventRepository: EventRepository): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         // TODO should I let the selected event to null, instead of passing it in the parameters
