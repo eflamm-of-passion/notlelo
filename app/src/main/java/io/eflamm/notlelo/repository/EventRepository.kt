@@ -30,7 +30,7 @@ class EventRepository(
     suspend fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Long {
         val day = Day(eventId)
         val existingDay = dayDao.getDayByEventIdByDate(eventId, day.date).first()
-        var dayId = 0L
+        var dayId: Long
         // if day already exists for the given event so we do not require to create another one
         if(existingDay == null) {
             dayId = dayDao.insert(day)
@@ -39,7 +39,7 @@ class EventRepository(
         }
 
         val meal = Meal(dayId, mealName)
-        var mealId = 0L
+        var mealId: Long
         // same thing for the meals
         val existingMeal = mealDao.getDayByEventIdByDate(dayId, mealName).first()
         if(existingMeal == null) {

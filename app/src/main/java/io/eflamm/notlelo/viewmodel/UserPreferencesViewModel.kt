@@ -53,6 +53,7 @@ class MockUserPreferencesViewModel(): ViewModel(), IUserPreferencesViewModel {
 }
 
 class UserPreferencesViewModelFactory(private val userPreferencesRepository: UserPreferencesRepository) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if(modelClass.isAssignableFrom(UserPreferencesViewModel::class.java))
             return UserPreferencesViewModel(userPreferencesRepository) as T

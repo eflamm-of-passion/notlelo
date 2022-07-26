@@ -166,7 +166,7 @@ fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
                 2f -> 1080
                 else -> 480
             }
-            userPreferencesViewModel.updatePictureResolution(resolution ?: 480)
+            userPreferencesViewModel.updatePictureResolution(resolution)
         }
     )
 }

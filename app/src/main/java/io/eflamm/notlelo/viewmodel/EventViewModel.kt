@@ -20,7 +20,7 @@ import java.io.File
 
 interface IEventViewModel {
     val uiState: EventUiState
-    fun updateSelectedEvent(event: Event)
+    fun updateSelectedEvent(event: Event?)
     fun updateSelectedPicture(picture: Picture?)
     val allEvents: LiveData<List<Event>>
     fun eventWithProducts(id: Long): LiveData<EventWithDays>
@@ -42,7 +42,7 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
     override var uiState by mutableStateOf(EventUiState(selectedEvent = null, selectedPicture = null))
         private set
 
-    override fun updateSelectedEvent(event: Event) {
+    override fun updateSelectedEvent(event: Event?) {
             uiState.selectedEvent = event
     }
     override fun updateSelectedPicture(picture: Picture?) {
@@ -131,7 +131,7 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
 class MockEventViewModel: ViewModel(), IEventViewModel {
     override val uiState = EventUiState(null, null)
 
-    override fun updateSelectedEvent(event: Event) {
+    override fun updateSelectedEvent(event: Event?) {
         // do nothing
     }
 

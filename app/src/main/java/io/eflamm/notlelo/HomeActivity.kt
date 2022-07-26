@@ -37,13 +37,14 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import io.eflamm.notlelo.model.Event
+import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.NotleloTheme
 import io.eflamm.notlelo.viewmodel.*
 import io.eflamm.notlelo.views.SelectListView
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-data class Link(val title: String, val route: String, val onClick: (route: String) -> Unit)
+data class Link(val title: String, val isDisabled: Boolean, val route: String, val onClick: (route: String) -> Unit)
 
 class HomeActivity : AppCompatActivity() {
 
@@ -112,33 +113,21 @@ fun HomeView(
     eventViewModel: IEventViewModel
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-    val links: List<Link> = listOf(
-        Link(stringResource(R.string.home_camera), "camera") { route ->
-            when(cameraPermissionState.status) {
-                PermissionStatus.Granted -> {
-                    navController.navigate(route)
-                }
-                else -> {
-                    // FIXME if denied stay on the home page then display toast to explain
-                    cameraPermissionState.launchPermissionRequest().also { navController.navigate(route) }
-                }
-            }
-        },
-        Link(stringResource(R.string.home_library), "library") {route -> navController.navigate(route)},
-        Link(stringResource(R.string.home_settings), "settings") {route -> navController.navigate(route)}
-    )
 
     val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
-    val (events, setEvents) = remember { mutableStateOf(emptyList<Event>()) }
-
-    eventViewModel.allEvents.observeAsState().value?.let { e ->
-        // load the list, and set the selected event with the first element of the list
-        setEvents(e)
-        val selectedEvent: Event? = eventViewModel.uiState.selectedEvent
-        if(selectedEvent == null && e.isNotEmpty()) {
-            // TODO should use the event with the last update, or the favorite, I don't know yet, instead of first
-            eventViewModel.updateSelectedEvent(e[0])
+    var selectedEvent: Event? = eventViewModel.uiState.selectedEvent
+    val events: List<Event> = eventViewModel.allEvents.observeAsState().value.let { events ->
+        if(events != null && events.isNotEmpty() && selectedEvent == null) {
+            // TODO choose a favorite event or the last updated event
+            // FIXME seems a bit overkill and sketchy
+            eventViewModel.updateSelectedEvent(events[0])
+            selectedEvent = events[0]
         }
+        events
+    } ?: emptyList()
+
+    if(events.isEmpty() && selectedEvent != null) {
+        eventViewModel.updateSelectedEvent(null)
     }
 
     Column(
@@ -174,9 +163,18 @@ fun HomeView(
                     SelectEvents(events = events, setDisplayAddEvent, eventViewModel)
                 }
 
-                for(link in links) {
-                    LinkToPage(link)
-                }
+                LinkToPage(Link(stringResource(R.string.home_camera), selectedEvent == null, "camera") { route ->
+                    when(cameraPermissionState.status) {
+                        PermissionStatus.Granted -> {
+                            navController.navigate(route)
+                        } else -> {
+                            // TODO if denied stay on the home page then display toast to explain
+                            cameraPermissionState.launchPermissionRequest().also { navController.navigate(route) }
+                        }
+                    }
+                })
+                LinkToPage(Link(stringResource(R.string.home_library), selectedEvent == null, "library") {route -> navController.navigate(route)})
+                LinkToPage(Link(stringResource(R.string.home_settings), false, "settings") {route -> navController.navigate(route)})
 
             }
         }
@@ -193,7 +191,7 @@ fun SelectEvents(
         mutableStateOf(eventViewModel.uiState.selectedEvent?.name ?: events[0].name)
     }
 
-    val selectedEventFromUiState: Event? = eventViewModel.uiState.selectedEvent
+    val selectedEventFromUiState: Event? = eventViewModel.uiState.selectedEvent // TODO remove redundant
     selectedEventFromUiState.let {
         // if an event was selected previously
         // FIXME normally I shouldn't have to check it here, every logic should be handled in the view model
@@ -271,7 +269,8 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewMo
 fun LinkToPage(link: Link) {
     Row {
         TextButton(onClick = {
-            link.onClick(link.route)
+            if(!link.isDisabled)
+                link.onClick(link.route)
        }) {
            Text(
                text = link.title,
@@ -279,7 +278,7 @@ fun LinkToPage(link: Link) {
                fontSize = MaterialTheme.typography.h4.fontSize,
                fontWeight = MaterialTheme.typography.h4.fontWeight,
                letterSpacing = MaterialTheme.typography.h4.letterSpacing,
-               color = MaterialTheme.typography.h4.color,
+               color = if (link.isDisabled) LightGrey else MaterialTheme.typography.h4.color,
            )
        }
     }
