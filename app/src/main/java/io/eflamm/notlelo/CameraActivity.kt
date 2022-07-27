@@ -37,7 +37,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.ui.theme.Green
+import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.Red
+import io.eflamm.notlelo.ui.theme.White
 import io.eflamm.notlelo.viewmodel.ICameraViewModel
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.IUserPreferencesViewModel
@@ -58,6 +60,7 @@ fun CameraView(navController: NavController, eventViewModel: IEventViewModel, ca
     val (isDisplayingSaveProductModal, setDisplayingSaveProductModal) = remember { mutableStateOf(false) }
     val resolutionFromUserPreference = userPreferencesViewModel.pictureResolution.observeAsState().value // TODO get the value synchronously probably, or pass it from the home page
     val imageCapture: ImageCapture = remember { ImageCapture.Builder().setTargetResolution(mapSizeFromResolution(resolutionFromUserPreference ?: 480)).build()}
+    val pictureLocations = cameraViewModel.cameraUiState.takenPicturesPath
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -66,7 +69,7 @@ fun CameraView(navController: NavController, eventViewModel: IEventViewModel, ca
             CameraPreview(imageCapture)
             Box(Modifier.fillMaxSize()) {
                 Row(Modifier.align(Alignment.TopStart)) {
-                    TakenPictures(cameraViewModel)
+                    TakenPictures(pictureLocations, cameraViewModel)
                 }
                 Row(Modifier.align(Alignment.BottomCenter)) {
                     TextButton(onClick = { navController.navigateUp() }) {
@@ -82,15 +85,15 @@ fun CameraView(navController: NavController, eventViewModel: IEventViewModel, ca
                             Icons.Filled.Camera,
                             contentDescription = stringResource(id = R.string.icon_desc_take_picture),
                             modifier = Modifier.size(80.dp),
-                            tint = colorResource(id = R.color.white)
+                            tint = White
                         )
                     }
-                    TextButton(onClick = { setDisplayingSaveProductModal(true) }) {
+                    TextButton(onClick = { if(pictureLocations.isNotEmpty()) setDisplayingSaveProductModal(true) }) {
                         Icon(
                             Icons.Filled.Check,
                             contentDescription = stringResource(id = R.string.icon_desc_add_event),
                             modifier = Modifier.size(80.dp),
-                            tint = colorResource(id = R.color.white)
+                            tint = if(pictureLocations.isNotEmpty()) White else LightGrey
                         )
                     }
                 }
@@ -139,15 +142,13 @@ fun CameraPreview(imageCapture: ImageCapture) {
 }
 
 @Composable
-fun TakenPictures(cameraViewModel: ICameraViewModel) {
-    val pictureLocations = cameraViewModel.cameraUiState.takenPicturesPath
-
+fun TakenPictures(pictureLocations: List<String>, cameraViewModel: ICameraViewModel) {
     Box(
         Modifier
-            .width(75.dp)
+            .width(90.dp)
             ) {
         Column {
-            if(pictureLocations.size > 0) {
+            if(pictureLocations.isNotEmpty()) {
                 Row {
                     TextButton(onClick = { cameraViewModel.removeAllPictures() }) {
                         Icon(
@@ -168,18 +169,20 @@ fun TakenPictures(cameraViewModel: ICameraViewModel) {
                 pictureLocations.forEach { pictureLocation ->
                     // TODO update the list when a photo is added
                     Row(modifier = Modifier.padding(5.dp), horizontalArrangement = Arrangement.Start) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(pictureLocation)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "",
-                            placeholder = painterResource(R.drawable.ic_launcher_foreground),
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(CircleShape)
-                        )
+                        TextButton(onClick = { cameraViewModel.removePicture(pictureLocation) }) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(pictureLocation)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "",
+                                placeholder = painterResource(R.drawable.ic_baseline_image),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                            )
+                        }
                     }
                 }
             }

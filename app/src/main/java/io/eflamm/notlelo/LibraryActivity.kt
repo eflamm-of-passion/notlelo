@@ -159,7 +159,7 @@ fun Pictures(pictures: List<Picture>, eventViewModel: IEventViewModel) {
                         .crossfade(true)
                         .build(),
                     contentDescription = "",
-                    placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                    placeholder = painterResource(R.drawable.ic_baseline_image),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(125.dp)
@@ -213,7 +213,7 @@ fun DisplayFullscreenPicture(pictureToDisplay: Picture, eventViewModel: IEventVi
                     .crossfade(true)
                     .build(),
                 contentDescription = "",
-                placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                placeholder = painterResource(R.drawable.ic_baseline_image),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
