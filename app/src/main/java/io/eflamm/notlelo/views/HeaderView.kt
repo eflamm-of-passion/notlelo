@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import io.eflamm.notlelo.R
 import io.eflamm.notlelo.ui.theme.NotleloTheme
+import io.eflamm.notlelo.ui.theme.White
 
 @Composable
 fun HeaderView(navController: NavController, title: String, childComponent: @Composable () -> Unit) {
@@ -33,7 +34,7 @@ fun HeaderView(navController: NavController, title: String, childComponent: @Com
                 Icons.Filled.ArrowBackIos,
                 contentDescription = stringResource(id = R.string.icon_desc_go_back),
                 modifier = Modifier.size(40.dp),
-                tint = colorResource(id = R.color.white)
+                tint = White
             )
         }
         Text(title,

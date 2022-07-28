@@ -8,11 +8,11 @@ android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "io.eflamm.notlelo"
+        applicationId "dev.eflamm.notlelo"
         minSdk 26
         targetSdk 32
-        versionCode 1
-        versionName "1.0"
+        versionCode 16
+        versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

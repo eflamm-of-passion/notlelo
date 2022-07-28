@@ -30,6 +30,7 @@ interface IEventViewModel {
     fun deleteEvents(events: List<Event>): Job
     fun deleteProduct(product: Product): Job
     fun clearCache(cacheDirectory: File): Job
+    fun getProductOccurrence(numberOfNames: Int): LiveData<Map<String, Int>>
 }
 
 data class EventUiState(
@@ -87,6 +88,10 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
 
     override fun clearCache(cacheDirectory: File): Job = viewModelScope.launch {
         cacheDirectory.deleteRecursively()
+    }
+
+    override fun getProductOccurrence(numberOfNames: Int): LiveData<Map<String, Int>> {
+        return eventRepository.getProductNameOccurrence(numberOfNames).asLiveData()
     }
 
     private fun zipEvent(context: Context, eventWithProducts: EventWithDays): File {
@@ -168,6 +173,10 @@ class MockEventViewModel: ViewModel(), IEventViewModel {
     }
 
     override fun clearCache(cacheDirectory: File): Job {
+        TODO("Not yet implemented")
+    }
+
+    override fun getProductOccurrence(numberOfNames: Int): LiveData<Map<String, Int>> {
         TODO("Not yet implemented")
     }
 

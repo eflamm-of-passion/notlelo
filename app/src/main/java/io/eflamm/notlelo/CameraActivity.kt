@@ -29,7 +29,9 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -197,6 +199,7 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
     val (productName, setProductName) = remember { mutableStateOf("") }
     val (mealName, setMealName) = remember { mutableStateOf(preDefinedListOfMeals[0]) }
     val appFolder = LocalContext.current.filesDir
+    val productOccurrence: Map<String, Int> = eventViewModel.getProductOccurrence(5).observeAsState().value ?: emptyMap()
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -204,7 +207,7 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
         Column(modifier = Modifier
             .align(Alignment.Center)
             .width(400.dp)
-            .height(250.dp)
+            .height(300.dp)
             .background(color = colorResource(id = R.color.white))) {
             Row {
                 Text(text = stringResource(id = R.string.camera_product_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
@@ -217,6 +220,21 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
 //                    label = {Text(stringResource(id = R.string.camera_product_input_label))},
                     colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
                 )
+            }
+            Row {
+                productOccurrence.keys.forEach { suggestionName ->
+                    if(productName != suggestionName) {
+                        TextButton(onClick = {
+                            setProductName(suggestionName)
+                        }) {
+                            Text(text = suggestionName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = White,
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .background(LightGrey, CircleShape)
+                                    .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp))
+                        }
+                    }
+                }
             }
             Row {
                 Text(text = stringResource(id = R.string.camera_meal_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)

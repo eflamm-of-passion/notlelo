@@ -1,9 +1,6 @@
 package io.eflamm.notlelo.database
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import io.eflamm.notlelo.model.Product
 import kotlinx.coroutines.flow.Flow
 import java.util.*
@@ -21,4 +18,8 @@ interface ProductDao {
 
     @Query("DELETE FROM Product WHERE id NOT IN (SELECT DISTINCT product_id FROM Picture)")
     suspend fun clearEmptyProducts()
+
+    @MapInfo(keyColumn = "name", valueColumn = "count")
+    @Query("SELECT DISTINCT name, COUNT(name) AS count FROM Product GROUP BY name LIMIT :numberOfNames")
+    fun getProductOccurrence(numberOfNames: Int): Flow<Map<String, Int>>
 }

@@ -72,4 +72,8 @@ class EventRepository(
         dayDao.clearEmptyDays()
     }
 
+    fun getProductNameOccurrence(numberOfNames: Int): Flow<Map<String, Int>> {
+        return productDao.getProductOccurrence(numberOfNames)
+    }
+
 }
