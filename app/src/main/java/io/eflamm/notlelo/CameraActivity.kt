@@ -199,7 +199,7 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
     val (productName, setProductName) = remember { mutableStateOf("") }
     val (mealName, setMealName) = remember { mutableStateOf(preDefinedListOfMeals[0]) }
     val appFolder = LocalContext.current.filesDir
-    val productOccurrence: Map<String, Int> = eventViewModel.getProductOccurrence(5).observeAsState().value ?: emptyMap()
+    val productSuggestions: List<String> = eventViewModel.getProductSuggestions(productName, 5).observeAsState().value ?: emptyList()
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -222,7 +222,7 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
                 )
             }
             Row {
-                productOccurrence.keys.forEach { suggestionName ->
+                productSuggestions.forEach { suggestionName ->
                     if(productName != suggestionName) {
                         TextButton(onClick = {
                             setProductName(suggestionName)

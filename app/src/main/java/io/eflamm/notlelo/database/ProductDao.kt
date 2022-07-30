@@ -20,6 +20,6 @@ interface ProductDao {
     suspend fun clearEmptyProducts()
 
     @MapInfo(keyColumn = "name", valueColumn = "count")
-    @Query("SELECT DISTINCT name, COUNT(name) AS count FROM Product GROUP BY name LIMIT :numberOfNames")
+    @Query("SELECT DISTINCT name, COUNT(name) AS count FROM Product GROUP BY name ORDER BY count LIMIT :numberOfNames")
     fun getProductOccurrence(numberOfNames: Int): Flow<Map<String, Int>>
 }

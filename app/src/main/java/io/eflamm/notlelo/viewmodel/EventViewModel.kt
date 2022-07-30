@@ -14,9 +14,14 @@ import io.eflamm.notlelo.model.Picture
 import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.repository.EventRepository
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.File
 
+/*
+TODO : implement a fuzzy search for adding product and give product suggestions to the user
+using FTS (not straightforward solution) : https://stackoverflow.com/questions/49656009/implementing-search-with-room
+ */
 
 interface IEventViewModel {
     val uiState: EventUiState
@@ -30,7 +35,7 @@ interface IEventViewModel {
     fun deleteEvents(events: List<Event>): Job
     fun deleteProduct(product: Product): Job
     fun clearCache(cacheDirectory: File): Job
-    fun getProductOccurrence(numberOfNames: Int): LiveData<Map<String, Int>>
+    fun getProductSuggestions(inputString: String, numberOfNames: Int): LiveData<List<String>>
 }
 
 data class EventUiState(
@@ -90,8 +95,11 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
         cacheDirectory.deleteRecursively()
     }
 
-    override fun getProductOccurrence(numberOfNames: Int): LiveData<Map<String, Int>> {
-        return eventRepository.getProductNameOccurrence(numberOfNames).asLiveData()
+    override fun getProductSuggestions(inputString: String, numberOfNames: Int): LiveData<List<String>> {
+        return eventRepository.getProductNameOccurrence(numberOfNames).map { productList ->
+            productList.filter { productName -> productName.contains(inputString) || inputString.isNullOrEmpty() }
+            .take(numberOfNames)
+        }.asLiveData()
     }
 
     private fun zipEvent(context: Context, eventWithProducts: EventWithDays): File {
@@ -176,7 +184,10 @@ class MockEventViewModel: ViewModel(), IEventViewModel {
         TODO("Not yet implemented")
     }
 
-    override fun getProductOccurrence(numberOfNames: Int): LiveData<Map<String, Int>> {
+    override fun getProductSuggestions(
+        inputString: String,
+        numberOfNames: Int
+    ): LiveData<List<String>> {
         TODO("Not yet implemented")
     }
 

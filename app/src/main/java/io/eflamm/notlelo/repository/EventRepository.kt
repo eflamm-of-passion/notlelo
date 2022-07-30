@@ -5,6 +5,7 @@ import io.eflamm.notlelo.database.*
 import io.eflamm.notlelo.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class EventRepository(
     private val eventDao: EventDao,
@@ -72,8 +73,8 @@ class EventRepository(
         dayDao.clearEmptyDays()
     }
 
-    fun getProductNameOccurrence(numberOfNames: Int): Flow<Map<String, Int>> {
-        return productDao.getProductOccurrence(numberOfNames)
+    fun getProductNameOccurrence(numberOfNames: Int): Flow<List<String>> {
+        return productDao.getProductOccurrence(numberOfNames).map { map -> map.keys.toList() }
     }
 
 }
