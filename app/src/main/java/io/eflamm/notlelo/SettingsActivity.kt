@@ -42,6 +42,7 @@ import io.eflamm.notlelo.viewmodel.IUserPreferencesViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.viewmodel.MockUserPreferencesViewModel
 import io.eflamm.notlelo.views.HeaderView
+import kotlin.math.roundToInt
 
 @Composable
 fun SettingsView(navController: NavController, eventViewModel: IEventViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
@@ -143,7 +144,7 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
 
 @Composable
 fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
-    var resolutionFromUserPreference: Int = userPreferencesViewModel.pictureResolution.observeAsState().value ?: 480
+    var resolutionFromUserPreference: Int? = userPreferencesViewModel.pictureResolution.observeAsState().value
     var sliderPosition by remember { mutableStateOf(0f)}
     SectionTitle( stringResource(id = R.string.settings_picture_resolution))
     Text(text = stringResource(id = R.string.settings_picture_resolution_description),
@@ -160,33 +161,38 @@ fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
         letterSpacing = MaterialTheme.typography.body1.letterSpacing,
         color = MaterialTheme.typography.body1.color
     )
-    Row(modifier = Modifier.padding(start = 50.dp, end = 50.dp)) {
-        Slider(
-            value = sliderPositionFromResolution(resolutionFromUserPreference),
-            valueRange = 0f..2f,
-            steps = 1,
-            onValueChange = { position ->
-                sliderPosition = position
-            },
-            onValueChangeFinished = {
-                val mappedResolution = when(sliderPosition) {
-                    0f -> 480
-                    1f -> 720
-                    2f -> 1080
-                    else -> 480
+    if(resolutionFromUserPreference != null) {
+        Row(modifier = Modifier.padding(start = 50.dp, end = 50.dp, top = 25.dp)) {
+            Slider(
+                value = mapResolutionToSliderPosition(resolutionFromUserPreference),
+                valueRange = 0f..2f,
+                steps = 1,
+                onValueChange = { position ->
+                    sliderPosition = position
+                },
+                onValueChangeFinished = {
+                    userPreferencesViewModel.updatePictureResolution(mapSliderPositionToResolution(sliderPosition))
                 }
-                userPreferencesViewModel.updatePictureResolution(mappedResolution)
-            }
-        )
+            )
+        }
     }
 }
 
-private fun sliderPositionFromResolution(pictureResolution: Int): Float {
+private fun mapResolutionToSliderPosition(pictureResolution: Int): Float {
     return when(pictureResolution) {
         480 -> 0f
         720 -> 1f
         1080 -> 2f
         else -> 0f
+    }
+}
+
+private fun mapSliderPositionToResolution(sliderPosition: Float): Int {
+    return when(sliderPosition.roundToInt().toFloat()) {
+        0f -> 480
+        1f -> 720
+        2f -> 1080
+        else -> 480
     }
 }
 
@@ -226,7 +232,12 @@ fun AnswerArchiveEvent() {
                 tint = colorResource(id = R.color.primary)
             )
         }
-        )), color = MaterialTheme.typography.body1.color, fontFamily = MaterialTheme.typography.body1.fontFamily, fontSize = MaterialTheme.typography.body1.fontSize)
+        )),
+        color = MaterialTheme.typography.body1.color,
+        fontFamily = MaterialTheme.typography.body1.fontFamily,
+        fontSize = MaterialTheme.typography.body1.fontSize,
+        modifier = Modifier.background(White).fillMaxWidth()
+    )
 }
 
 @Composable
@@ -236,7 +247,8 @@ fun AnswerText(answer: String) {
         fontFamily = MaterialTheme.typography.body1.fontFamily,
         fontWeight = MaterialTheme.typography.body1.fontWeight,
         letterSpacing = MaterialTheme.typography.body1.letterSpacing,
-        color = MaterialTheme.typography.body1.color
+        color = MaterialTheme.typography.body1.color,
+        modifier = Modifier.background(White).fillMaxWidth()
     )
 }
 
@@ -255,7 +267,8 @@ fun About() {
                 fontFamily = MaterialTheme.typography.body1.fontFamily,
                 fontWeight = MaterialTheme.typography.body1.fontWeight,
                 letterSpacing = MaterialTheme.typography.body1.letterSpacing,
-                color = MaterialTheme.typography.body1.color
+                color = MaterialTheme.typography.body1.color,
+                modifier = Modifier.background(White).padding(bottom = 20.dp)
             )
             Button(onClick = {
                     val intent = sendMailToMe()
@@ -281,14 +294,15 @@ fun About() {
                 fontWeight = MaterialTheme.typography.body1.fontWeight,
                 letterSpacing = MaterialTheme.typography.body1.letterSpacing,
                 color = MaterialTheme.typography.body1.color,
-                modifier = Modifier.padding(top = 10.dp)
+                modifier = Modifier.padding(top = 20.dp)
             )
             Text(text = "v${BuildConfig.VERSION_NAME}",
                 fontSize = MaterialTheme.typography.body1.fontSize,
                 fontFamily = MaterialTheme.typography.body1.fontFamily,
                 fontWeight = MaterialTheme.typography.body1.fontWeight,
                 letterSpacing = MaterialTheme.typography.body1.letterSpacing,
-                color = MaterialTheme.typography.body1.color
+                color = MaterialTheme.typography.body1.color,
+                modifier = Modifier.padding(top = 15.dp)
             )
         }
     }
@@ -312,6 +326,7 @@ fun ExpandableSection(title: String, childComponent: @Composable () -> Unit) {
             .clickable {
                 setIsExpanded(!isExpanded)
             }
+            .fillMaxWidth()
             .background(White)
             .padding(top = 10.dp)
     ) {
