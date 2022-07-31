@@ -46,6 +46,7 @@ import io.eflamm.notlelo.ui.theme.White
 import io.eflamm.notlelo.viewmodel.ICameraViewModel
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.IUserPreferencesViewModel
+import io.eflamm.notlelo.views.SelectListStyle
 import io.eflamm.notlelo.views.SelectListView
 import java.io.File
 import java.nio.file.Files
@@ -208,8 +209,8 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
     ) {
         Card(modifier = Modifier
             .align(Alignment.TopCenter)
-            .padding(top = 125.dp, start = 20.dp, end = 20.dp)
-            .height(300.dp)
+            .padding(top = 100.dp, start = 20.dp, end = 20.dp)
+            .height(350.dp)
             .clip(RoundedCornerShape(7.dp)),
             shape = RoundedCornerShape(7.dp),
         ) {
@@ -218,15 +219,17 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 Row {
-                    Text(text = stringResource(id = R.string.camera_product_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
+                    Text(text = stringResource(id = R.string.camera_product_input_title), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
                 }
                 Row {
-                    TextField(
+                    OutlinedTextField(
                         value = productName,
                         onValueChange = { setProductName(it) },
-                        modifier = Modifier.width(300.dp),
-    //                    label = {Text(stringResource(id = R.string.camera_product_input_label))},
-                        colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
+                        label = { Text(
+                            stringResource(id = R.string.camera_product_input_label),
+                            fontSize = 18.sp,
+                            color = LightGrey
+                        ) }
                     )
                 }
                 Row {
@@ -245,17 +248,14 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
                     }
                 }
                 Row {
-                    Text(text = stringResource(id = R.string.camera_meal_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
+                    Text(text = stringResource(id = R.string.camera_meal_input_title), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
                 }
                 Row {
                     SelectListView(mealName, mealList,
                         onSelect = { _, item ->
                             setMealName(item)
                         },
-                        onChange = { changedValue ->
-                            setMealName(changedValue)
-                            // TODO when enter then add the meal to the meal list
-                        }
+                        SelectListStyle(18.sp, 0.sp, FontWeight.Normal, 30.dp)
                     )
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {

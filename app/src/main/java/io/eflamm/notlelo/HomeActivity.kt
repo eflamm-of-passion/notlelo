@@ -26,8 +26,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -39,7 +41,9 @@ import com.google.accompanist.permissions.rememberPermissionState
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.NotleloTheme
+import io.eflamm.notlelo.ui.theme.Red
 import io.eflamm.notlelo.viewmodel.*
+import io.eflamm.notlelo.views.SelectListStyle
 import io.eflamm.notlelo.views.SelectListView
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -158,7 +162,7 @@ fun HomeView(
                 verticalArrangement = Arrangement.SpaceEvenly) {
 
                 if(displayAddEvent || events.isEmpty()) {
-                    AddEvent(setDisplayAddEvent, eventViewModel)
+                    AddEvent(setDisplayAddEvent, events.isEmpty(), eventViewModel)
                 } else {
                     SelectEvents(events = events, setDisplayAddEvent, eventViewModel)
                 }
@@ -208,11 +212,7 @@ fun SelectEvents(
                 setSelectedEventName(newlySelectedEvent.name)
                 eventViewModel.updateSelectedEvent(newlySelectedEvent)
             },
-            onChange = {
-                // FIXME make this function optional
-                // do nothing
-            }
-
+            SelectListStyle(22.sp, 3.sp, FontWeight(400), 50.dp)
         )
 
         TextButton(
@@ -230,14 +230,19 @@ fun SelectEvents(
 }
 
 @Composable
-fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewModel) {
+fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, isAddingMandatory: Boolean, eventViewModel: IEventViewModel) {
     val (eventName, setEventName) = remember { mutableStateOf("") }
 
     Row {
-        TextField(value = eventName,
-            colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray)),
-            placeholder = { Text(stringResource(id = R.string.home_event_input_placeholder)) },
-            onValueChange = { setEventName(it)})
+        OutlinedTextField(
+            value = eventName,
+            onValueChange = { setEventName(it) },
+            label = { Text(
+                stringResource(id = R.string.home_event_input_placeholder),
+                color = LightGrey
+            ) }
+        )
+
         TextButton(onClick = {
             // TODO set the added event as the selected event
             val newEvent = Event(eventName)
@@ -259,7 +264,7 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, eventViewModel: IEventViewMo
                 Icons.Filled.Cancel,
                 contentDescription = stringResource(id = R.string.icon_desc_cancel_add_event),
                 modifier = Modifier.size(35.dp),
-                tint = colorResource(id = R.color.red)
+                tint = if(isAddingMandatory) LightGrey else Red
             )
         }
     }

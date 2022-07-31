@@ -13,7 +13,9 @@
     <string name="file_saved">Fichier enregistré</string>
     <string name="camera_validate">Valider</string>
     <string name="camera_cancel">Annuler</string>
+    <string name="camera_product_input_title">Produit</string>
     <string name="camera_product_input_label">Nom du produit</string>
+    <string name="camera_meal_input_title">Repas</string>
     <string name="camera_meal_input_label">Nom du repas</string>
     <string name="camera_event_input_label">Nom de l\'évènement</string>
     <string name="camera_product_name_placeholder">boîte de Montblanc</string>
@@ -30,6 +32,7 @@
         <item>Cinquième</item>
         <item>Concours cuisine</item>
         <item>Pique-nique</item>
+        <item>Autre</item>
     </string-array>
     <string name="library_close">Fermer</string>
     <string name="library_delete">Supprimer</string>
@@ -95,6 +98,6 @@
     <string name="icon_desc_add_product">Ajouter un produit</string>
     <string name="icon_desc_share_event">Compresser et partager un évènement</string>
     <string name="icon_desc_delete_event">Supprimer un produit</string>
-    <string name="icon_desc_selecting_event">Sélectionner un évènement</string>
-    <string name="icon_desc_selected_event">Evènement sélectionné</string>
+    <string name="icon_desc_selecting_value">Sélectionner un choix</string>
+    <string name="icon_desc_selected_value">Choix sélectionnée</string>
 </resources>
