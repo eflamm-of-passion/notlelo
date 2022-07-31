@@ -95,4 +95,6 @@
     <string name="icon_desc_add_product">Ajouter un produit</string>
     <string name="icon_desc_share_event">Compresser et partager un évènement</string>
     <string name="icon_desc_delete_event">Supprimer un produit</string>
+    <string name="icon_desc_selecting_event">Sélectionner un évènement</string>
+    <string name="icon_desc_selected_event">Evènement sélectionné</string>
 </resources>
