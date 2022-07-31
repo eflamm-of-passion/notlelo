@@ -33,7 +33,7 @@ class UserPreferencesRepository(
                 throw exception
         }
         .map { preferences ->
-            val pictureResolution: Int = preferences[UserPreferencesKeys.PICTURE_RESOLUTION] ?: 720
+            val pictureResolution: Int = preferences[UserPreferencesKeys.PICTURE_RESOLUTION] ?: 480
             UserPreferences(pictureResolution)
         }
 

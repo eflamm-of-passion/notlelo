@@ -25,13 +25,7 @@ class UserPreferencesViewModel(private val userPreferencesRepository: UserPrefer
     }
 
     override fun updatePictureResolution(resolution: Int): Job = viewModelScope.launch {
-        val processedResolution = when(resolution) {
-            480 -> 480
-            720 -> 720
-            1080 -> 1080
-            else -> 480
-        }
-        userPreferencesRepository.updatePictureResolution(processedResolution)
+        userPreferencesRepository.updatePictureResolution(resolution)
     }
 }
 

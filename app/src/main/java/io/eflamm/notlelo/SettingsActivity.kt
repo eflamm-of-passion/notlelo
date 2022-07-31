@@ -134,9 +134,8 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
 
 @Composable
 fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
-    var resolutionFromUserPreference = userPreferencesViewModel.pictureResolution.observeAsState().value
+    var resolutionFromUserPreference: Int = userPreferencesViewModel.pictureResolution.observeAsState().value ?: 480
     var sliderPosition by remember { mutableStateOf(0f)}
-    var resolution by remember { mutableStateOf(resolutionFromUserPreference ?: 480)}
     SectionTitle( stringResource(id = R.string.settings_picture_resolution))
     Text(text = stringResource(id = R.string.settings_picture_resolution_description),
         fontSize = MaterialTheme.typography.body1.fontSize,
@@ -145,7 +144,7 @@ fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
         letterSpacing = MaterialTheme.typography.body1.letterSpacing,
         color = MaterialTheme.typography.body1.color
     )
-    Text(text = stringResource(id = R.string.settings_picture_resolution_value, "$resolution"),
+    Text(text = stringResource(id = R.string.settings_picture_resolution_value, "$resolutionFromUserPreference"),
         fontSize = MaterialTheme.typography.body1.fontSize,
         fontFamily = MaterialTheme.typography.body1.fontFamily,
         fontWeight = MaterialTheme.typography.body1.fontWeight,
@@ -153,20 +152,20 @@ fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
         color = MaterialTheme.typography.body1.color
     )
     Slider(
-        value = sliderPositionFromResolution(resolution),
+        value = sliderPositionFromResolution(resolutionFromUserPreference),
         valueRange = 0f..2f,
         steps = 1,
         onValueChange = { position ->
             sliderPosition = position
         },
         onValueChangeFinished = {
-            resolution = when(sliderPosition) {
+            val mappedResolution = when(sliderPosition) {
                 0f -> 480
                 1f -> 720
                 2f -> 1080
                 else -> 480
             }
-            userPreferencesViewModel.updatePictureResolution(resolution)
+            userPreferencesViewModel.updatePictureResolution(mappedResolution)
         }
     )
 }
