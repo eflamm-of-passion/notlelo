@@ -239,6 +239,7 @@ fun AddEvent(setDisplayAddEvent: (Boolean) -> Unit, isAddingMandatory: Boolean, 
             onValueChange = { setEventName(it) },
             label = { Text(
                 stringResource(id = R.string.home_event_input_placeholder),
+                fontSize = 18.sp,
                 color = LightGrey
             ) }
         )

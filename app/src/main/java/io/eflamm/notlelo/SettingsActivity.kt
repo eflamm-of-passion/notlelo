@@ -17,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -70,10 +69,10 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(220.dp)
     ) {
         SectionTitle(stringResource(id = R.string.settings_deleteEvent))
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             if(events?.isEmpty() == true) {
                 Text(
                     text = stringResource(id = R.string.settings_noCamp),
@@ -84,9 +83,14 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
                 )
             }
             events?.forEach { event ->
-                Row(modifier = Modifier.height(40.dp)) {
+                Row {
                     Checkbox(
-                        colors = CheckboxDefaults.colors(Color.LightGray),
+                        modifier = Modifier.padding(start = 100.dp, end = 20.dp),
+                        colors =CheckboxDefaults.colors(
+                            checkedColor = MaterialTheme.colors.primary,
+                            uncheckedColor = MaterialTheme.colors.primary,
+                            checkmarkColor = White
+                        ),
                         checked = eventsToDelete.contains(event),
                         onCheckedChange = {checked ->
                             if (checked) {
@@ -99,11 +103,16 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
                                 }
                             }
                         })
-                        Text(
-                            text = event.name,
-                            color = colorResource(id = R.color.secondary),
-                            modifier = Modifier.wrapContentHeight()
-                        )
+                        Row(modifier = Modifier.align(Alignment.CenterVertically)) {
+                            Text(
+                                text = event.name,
+                                fontSize = 22.sp,
+                                fontFamily = MaterialTheme.typography.body1.fontFamily,
+                                fontWeight = MaterialTheme.typography.body1.fontWeight,
+                                letterSpacing = MaterialTheme.typography.body1.letterSpacing,
+                                color = colorResource(id = R.color.secondary)
+                            )
+                        }
                 }
             }
         }
@@ -112,7 +121,7 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
                 eventViewModel.deleteEvents(eventsToDelete.toList())
                 // TODO add a toast to confirm the deletion
                 },
-                colors = if (events?.isEmpty() == true)  ButtonDefaults.buttonColors(backgroundColor = LightGrey) else ButtonDefaults.buttonColors(backgroundColor = Red),
+                colors = if (eventsToDelete.isEmpty())  ButtonDefaults.buttonColors(backgroundColor = LightGrey) else ButtonDefaults.buttonColors(backgroundColor = Red),
             ) {
                 Text(text = stringResource(id = R.string.settings_deleteEvent),
                     fontSize = 5.em,
@@ -151,23 +160,25 @@ fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
         letterSpacing = MaterialTheme.typography.body1.letterSpacing,
         color = MaterialTheme.typography.body1.color
     )
-    Slider(
-        value = sliderPositionFromResolution(resolutionFromUserPreference),
-        valueRange = 0f..2f,
-        steps = 1,
-        onValueChange = { position ->
-            sliderPosition = position
-        },
-        onValueChangeFinished = {
-            val mappedResolution = when(sliderPosition) {
-                0f -> 480
-                1f -> 720
-                2f -> 1080
-                else -> 480
+    Row(modifier = Modifier.padding(start = 50.dp, end = 50.dp)) {
+        Slider(
+            value = sliderPositionFromResolution(resolutionFromUserPreference),
+            valueRange = 0f..2f,
+            steps = 1,
+            onValueChange = { position ->
+                sliderPosition = position
+            },
+            onValueChangeFinished = {
+                val mappedResolution = when(sliderPosition) {
+                    0f -> 480
+                    1f -> 720
+                    2f -> 1080
+                    else -> 480
+                }
+                userPreferencesViewModel.updatePictureResolution(mappedResolution)
             }
-            userPreferencesViewModel.updatePictureResolution(mappedResolution)
-        }
-    )
+        )
+    }
 }
 
 private fun sliderPositionFromResolution(pictureResolution: Int): Float {
@@ -253,11 +264,11 @@ fun About() {
                     }
                 },
                 modifier = Modifier
-                    .height(40.dp)
-                    .width(180.dp)
+                    .height(50.dp)
+                    .width(250.dp)
             ) {
                 Text(text = stringResource(id = R.string.settings_clickHere),
-                    fontSize = 4.em,
+                    fontSize = 5.em,
                     fontFamily = MaterialTheme.typography.button.fontFamily,
                     fontWeight = FontWeight.W300,
                     letterSpacing = 3.sp,
@@ -269,7 +280,8 @@ fun About() {
                 fontFamily = MaterialTheme.typography.body1.fontFamily,
                 fontWeight = MaterialTheme.typography.body1.fontWeight,
                 letterSpacing = MaterialTheme.typography.body1.letterSpacing,
-                color = MaterialTheme.typography.body1.color
+                color = MaterialTheme.typography.body1.color,
+                modifier = Modifier.padding(top = 10.dp)
             )
             Text(text = "v${BuildConfig.VERSION_NAME}",
                 fontSize = MaterialTheme.typography.body1.fontSize,
@@ -288,7 +300,7 @@ fun SectionTitle(title: String) {
         text = title,
         fontSize = MaterialTheme.typography.h3.fontSize,
         color = MaterialTheme.typography.h3.color,
-        modifier = Modifier.padding(start = 10.dp))
+        modifier = Modifier.padding(start = 10.dp, top = 20.dp))
 }
 
 @ExperimentalAnimationApi
@@ -301,6 +313,7 @@ fun ExpandableSection(title: String, childComponent: @Composable () -> Unit) {
                 setIsExpanded(!isExpanded)
             }
             .background(White)
+            .padding(top = 10.dp)
     ) {
         Column {
             Text(
