@@ -11,6 +11,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
@@ -71,31 +72,31 @@ fun CameraView(navController: NavController, eventViewModel: IEventViewModel, ca
             CameraPreview(imageCapture)
             Box(Modifier.fillMaxSize()) {
                 Row(Modifier.align(Alignment.TopStart)) {
-                    TakenPictures(pictureLocations, cameraViewModel)
+                    TakenPictures(isDisplayingSaveProductModal, pictureLocations, cameraViewModel)
                 }
                 Row(Modifier.align(Alignment.BottomCenter)) {
-                    TextButton(onClick = { navController.navigateUp() }) {
+                    TextButton(onClick = { if(!isDisplayingSaveProductModal) navController.navigateUp() }) {
                         Icon(
                             Icons.Filled.ArrowBackIos,
                             contentDescription = stringResource(id = R.string.icon_desc_go_back),
                             modifier = Modifier.size(80.dp),
-                            tint = colorResource(id = R.color.white)
+                            tint = if(!isDisplayingSaveProductModal) White else LightGrey
                         )
                     }
-                    TextButton(onClick = { takePhoto(context, imageCapture, cameraViewModel) }) {
+                    TextButton(onClick = { if(!isDisplayingSaveProductModal) takePhoto(context, imageCapture, cameraViewModel) }) {
                         Icon(
                             Icons.Filled.Camera,
                             contentDescription = stringResource(id = R.string.icon_desc_take_picture),
                             modifier = Modifier.size(80.dp),
-                            tint = White
+                            tint = if(!isDisplayingSaveProductModal) White else LightGrey
                         )
                     }
-                    TextButton(onClick = { if(pictureLocations.isNotEmpty()) setDisplayingSaveProductModal(true) }) {
+                    TextButton(onClick = { if(pictureLocations.isNotEmpty() && !isDisplayingSaveProductModal) setDisplayingSaveProductModal(true) }) {
                         Icon(
                             Icons.Filled.Check,
                             contentDescription = stringResource(id = R.string.icon_desc_add_event),
                             modifier = Modifier.size(80.dp),
-                            tint = if(pictureLocations.isNotEmpty()) White else LightGrey
+                            tint = if(pictureLocations.isNotEmpty() && !isDisplayingSaveProductModal) White else LightGrey
                         )
                     }
                 }
@@ -144,7 +145,7 @@ fun CameraPreview(imageCapture: ImageCapture) {
 }
 
 @Composable
-fun TakenPictures(pictureLocations: List<String>, cameraViewModel: ICameraViewModel) {
+fun TakenPictures(disableButtons: Boolean, pictureLocations: List<String>, cameraViewModel: ICameraViewModel) {
     Box(
         Modifier
             .width(90.dp)
@@ -152,12 +153,12 @@ fun TakenPictures(pictureLocations: List<String>, cameraViewModel: ICameraViewMo
         Column {
             if(pictureLocations.isNotEmpty()) {
                 Row {
-                    TextButton(onClick = { cameraViewModel.removeAllPictures() }) {
+                    TextButton(onClick = { if(!disableButtons) cameraViewModel.removeAllPictures() }) {
                         Icon(
                             Icons.Filled.Cancel,
                             contentDescription = stringResource(id = R.string.icon_desc_add_event),
                             modifier = Modifier.size(80.dp),
-                            tint = colorResource(id = R.color.white)
+                            tint = if(!disableButtons) White else LightGrey
                         )
                     }
                 }
@@ -169,9 +170,8 @@ fun TakenPictures(pictureLocations: List<String>, cameraViewModel: ICameraViewMo
                 verticalArrangement = Arrangement.Top) {
 
                 pictureLocations.forEach { pictureLocation ->
-                    // TODO update the list when a photo is added
                     Row(modifier = Modifier.padding(5.dp), horizontalArrangement = Arrangement.Start) {
-                        TextButton(onClick = { cameraViewModel.removePicture(pictureLocation) }) {
+                        TextButton(onClick = { if(!disableButtons) cameraViewModel.removePicture(pictureLocation) }) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(pictureLocation)
@@ -194,84 +194,91 @@ fun TakenPictures(pictureLocations: List<String>, cameraViewModel: ICameraViewMo
 
 @Composable
 fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
+    val appFolder = LocalContext.current.filesDir
     val preDefinedListOfMeals = stringArrayResource(id = R.array.camera_meals).toMutableList()
+
     val mealList = remember { preDefinedListOfMeals.toMutableStateList() }
     val (productName, setProductName) = remember { mutableStateOf("") }
     val (mealName, setMealName) = remember { mutableStateOf(preDefinedListOfMeals[0]) }
-    val appFolder = LocalContext.current.filesDir
+
     val productSuggestions: List<String> = eventViewModel.getProductSuggestions(productName, 5).observeAsState().value ?: emptyList()
 
     Box(modifier = Modifier
         .fillMaxSize()
     ) {
-        Column(modifier = Modifier
-            .align(Alignment.Center)
-            .width(400.dp)
+        Card(modifier = Modifier
+            .align(Alignment.TopCenter)
+            .padding(top = 125.dp, start = 20.dp, end = 20.dp)
             .height(300.dp)
-            .background(color = colorResource(id = R.color.white))) {
-            Row {
-                Text(text = stringResource(id = R.string.camera_product_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
-            }
-            Row {
-                TextField(
-                    value = productName,
-                    onValueChange = { setProductName(it) },
-                    modifier = Modifier.width(300.dp),
-//                    label = {Text(stringResource(id = R.string.camera_product_input_label))},
-                    colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
-                )
-            }
-            Row {
-                productSuggestions.forEach { suggestionName ->
-                    if(productName != suggestionName) {
-                        TextButton(onClick = {
-                            setProductName(suggestionName)
-                        }) {
-                            Text(text = suggestionName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = White,
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .background(LightGrey, CircleShape)
-                                    .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp))
+            .clip(RoundedCornerShape(7.dp)),
+            shape = RoundedCornerShape(7.dp),
+        ) {
+            Column(
+                modifier = Modifier.background(color = White).padding(start = 15.dp),
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Row {
+                    Text(text = stringResource(id = R.string.camera_product_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
+                }
+                Row {
+                    TextField(
+                        value = productName,
+                        onValueChange = { setProductName(it) },
+                        modifier = Modifier.width(300.dp),
+    //                    label = {Text(stringResource(id = R.string.camera_product_input_label))},
+                        colors = TextFieldDefaults.textFieldColors( textColor = colorResource(id = android.R.color.darker_gray))
+                    )
+                }
+                Row {
+                    productSuggestions.forEach { suggestionName ->
+                        if(productName != suggestionName) {
+                            TextButton(onClick = {
+                                setProductName(suggestionName)
+                            }) {
+                                Text(text = suggestionName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = White,
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .background(LightGrey, CircleShape)
+                                        .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp))
+                            }
                         }
                     }
                 }
-            }
-            Row {
-                Text(text = stringResource(id = R.string.camera_meal_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
-            }
-            Row {
-                /* TODO list of meals*/
-                SelectListView(mealName, mealList,
-                    onSelect = { _, item ->
-                        setMealName(item)
-                    },
-                    onChange = { changedValue ->
-                        setMealName(changedValue)
-                        // TODO when enter then add the meal to the meal list
-                    }
-                )
-            }
-            Row {
-                // TODO disable the button if there is not selected event, if the field are not set
-                Column {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Red),
-                        onClick = {
-                            setDisplayingSaveProductModal(false)
-                        }
-                    ) {
-                        Text(text = stringResource(id = R.string.camera_cancel), fontSize = MaterialTheme.typography.button.fontSize, color = MaterialTheme.typography.button.color)
-                    }
+                Row {
+                    Text(text = stringResource(id = R.string.camera_meal_input_label), fontSize = MaterialTheme.typography.h5.fontSize, color = MaterialTheme.typography.h5.color)
                 }
-                Column {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Green),
-                        onClick = {
-                            setDisplayingSaveProductModal(false)
-                            saveProduct(appFolder, productName, mealName, eventViewModel, cameraViewModel)
+                Row {
+                    SelectListView(mealName, mealList,
+                        onSelect = { _, item ->
+                            setMealName(item)
+                        },
+                        onChange = { changedValue ->
+                            setMealName(changedValue)
+                            // TODO when enter then add the meal to the meal list
                         }
-                    ) {
-                        Text(text = stringResource(id = R.string.camera_validate), fontSize = MaterialTheme.typography.button.fontSize, color = MaterialTheme.typography.button.color)
+                    )
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    Column {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Red),
+                            onClick = {
+                                setDisplayingSaveProductModal(false)
+                            }
+                        ) {
+                            Text(text = stringResource(id = R.string.camera_cancel), fontSize = MaterialTheme.typography.button.fontSize, color = MaterialTheme.typography.button.color)
+                        }
+                    }
+                    Column {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Green),
+                            onClick = {
+                                setDisplayingSaveProductModal(false)
+                                saveProduct(appFolder, productName, mealName, eventViewModel, cameraViewModel)
+                            }
+                        ) {
+                            Text(text = stringResource(id = R.string.camera_validate), fontSize = MaterialTheme.typography.button.fontSize, color = MaterialTheme.typography.button.color)
+                        }
                     }
                 }
             }

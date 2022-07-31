@@ -33,6 +33,7 @@ ext {
     camerax_view_version = "1.0.0-alpha32"
     gsonVersion = "2.9.0"
     coilVersion = "2.0.0-rc01"
+    activityCompose = "1.5.0"
 
     // testing
     junitVersion = '4.13.2'

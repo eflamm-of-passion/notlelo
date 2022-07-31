@@ -271,7 +271,7 @@ fun About() {
                 letterSpacing = MaterialTheme.typography.body1.letterSpacing,
                 color = MaterialTheme.typography.body1.color
             )
-            Text(text = "version",
+            Text(text = "v${BuildConfig.VERSION_NAME}",
                 fontSize = MaterialTheme.typography.body1.fontSize,
                 fontFamily = MaterialTheme.typography.body1.fontFamily,
                 fontWeight = MaterialTheme.typography.body1.fontWeight,
