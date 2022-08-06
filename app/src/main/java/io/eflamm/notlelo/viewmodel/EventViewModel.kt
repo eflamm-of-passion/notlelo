@@ -26,8 +26,10 @@ using FTS (not straightforward solution) : https://stackoverflow.com/questions/4
 interface IEventViewModel {
     val uiState: EventUiState
     fun updateSelectedEvent(event: Event?)
+    fun updateSelectedEventWithDays(event: EventWithDays?)
     fun updateSelectedPicture(picture: Picture?)
     val allEvents: LiveData<List<Event>>
+    val allEventsWithDays: LiveData<List<EventWithDays>>
     fun eventWithProducts(id: Long): LiveData<EventWithDays>
     fun insertEvent(eventToCreate: Event): Job
     fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Job
@@ -40,22 +42,27 @@ interface IEventViewModel {
 
 data class EventUiState(
     var selectedEvent : Event?,
+    var selectedEventWithDays: EventWithDays?,
     var selectedPicture : Picture?
 )
 
 class EventViewModel(private val eventRepository: EventRepository ): ViewModel(), IEventViewModel {
 
-    override var uiState by mutableStateOf(EventUiState(selectedEvent = null, selectedPicture = null))
+    override var uiState by mutableStateOf(EventUiState(null, null, null))
         private set
 
     override fun updateSelectedEvent(event: Event?) {
             uiState.selectedEvent = event
+    }
+    override fun updateSelectedEventWithDays(event: EventWithDays?) {
+        uiState.selectedEventWithDays = event
     }
     override fun updateSelectedPicture(picture: Picture?) {
         uiState.selectedPicture = picture
     }
 
     override val allEvents = eventRepository.allEvents.asLiveData()
+    override val allEventsWithDays = eventRepository.allEventsWithDays.asLiveData()
 
     override fun eventWithProducts(id: Long): LiveData<EventWithDays> {
         return eventRepository.eventWithProducts(id).asLiveData()
@@ -137,15 +144,18 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
             temporaryPictureFiles
         )
     }
-
 }
 
 @Suppress("UNREACHABLE_CODE")
 class MockEventViewModel: ViewModel(), IEventViewModel {
-    override val uiState = EventUiState(null, null)
+    override val uiState = EventUiState(null, null, null)
 
     override fun updateSelectedEvent(event: Event?) {
         // do nothing
+    }
+
+    override fun updateSelectedEventWithDays(event: EventWithDays?) {
+        TODO("Not yet implemented")
     }
 
     override fun updateSelectedPicture(picture: Picture?) {
@@ -153,6 +163,8 @@ class MockEventViewModel: ViewModel(), IEventViewModel {
     }
 
     override val allEvents = liveData { emit(listOf( Event("Camp bleu"), Event("Camp rouge"))) }
+    override val allEventsWithDays: LiveData<List<EventWithDays>>
+        get() = TODO("Not yet implemented")
 
     override fun eventWithProducts(id: Long): LiveData<EventWithDays> {
         // FIXME return some values

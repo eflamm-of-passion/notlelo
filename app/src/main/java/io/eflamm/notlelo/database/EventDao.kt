@@ -21,6 +21,9 @@ interface EventDao {
     @Query("SELECT * FROM Event")
     fun getAllEvents(): Flow<List<Event>>
 
+    @Query("SELECT * FROM Event")
+    fun getAllEventsWithDays(): Flow<List<EventWithDays>> // FIXME workaround infinite loop
+
     @Transaction
     @Query("SELECT * FROM Event WHERE id = :id")
     fun getEventWithProducts(id: Long): Flow<EventWithDays>

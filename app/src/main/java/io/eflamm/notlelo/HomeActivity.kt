@@ -39,6 +39,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import io.eflamm.notlelo.model.Event
+import io.eflamm.notlelo.model.EventWithDays
 import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.NotleloTheme
 import io.eflamm.notlelo.ui.theme.Red
@@ -120,18 +121,20 @@ fun HomeView(
 
     val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
     var selectedEvent: Event? = eventViewModel.uiState.selectedEvent
-    val events: List<Event> = eventViewModel.allEvents.observeAsState().value.let { events ->
+    val events: List<EventWithDays> = eventViewModel.allEventsWithDays.observeAsState().value.let { events ->
         if(events != null && events.isNotEmpty() && selectedEvent == null) {
             // TODO choose a favorite event or the last updated event
             // FIXME seems a bit overkill and sketchy
-            eventViewModel.updateSelectedEvent(events[0])
-            selectedEvent = events[0]
+            eventViewModel.updateSelectedEvent(events[0].event)
+            eventViewModel.updateSelectedEventWithDays(events[0]) // FIXME workaround infinite loop
+            selectedEvent = events[0].event
         }
         events
     } ?: emptyList()
 
     if(events.isEmpty() && selectedEvent != null) {
         eventViewModel.updateSelectedEvent(null)
+        eventViewModel.updateSelectedEventWithDays(null)
     }
 
     Column(
@@ -187,30 +190,31 @@ fun HomeView(
 
 @Composable
 fun SelectEvents(
-    events: List<Event>,
+    events: List<EventWithDays>,
     setDisplayAddEvent: (Boolean) -> Unit,
     eventViewModel: IEventViewModel
 ) {
     val (selectedEventName, setSelectedEventName) = remember {
-        mutableStateOf(eventViewModel.uiState.selectedEvent?.name ?: events[0].name)
+        mutableStateOf(eventViewModel.uiState.selectedEventWithDays?.event?.name ?: events[0].event.name)
     }
 
     val selectedEventFromUiState: Event? = eventViewModel.uiState.selectedEvent // TODO remove redundant
     selectedEventFromUiState.let {
         // if an event was selected previously
         // FIXME normally I shouldn't have to check it here, every logic should be handled in the view model
-        val hasEventInList = events.any { e -> e.name == it?.name }
+        val hasEventInList = events.any { e -> e.event.name == it?.name }
         if(hasEventInList) {
             setSelectedEventName(selectedEventFromUiState?.name!!)
         }
     }
 
     Row {
-        SelectListView(selectedEventName, events.map { it.name },
+        SelectListView(selectedEventName, events.map { it.event.name },
             onSelect = { index, _ ->
                 val newlySelectedEvent = events[index]
-                setSelectedEventName(newlySelectedEvent.name)
-                eventViewModel.updateSelectedEvent(newlySelectedEvent)
+                setSelectedEventName(newlySelectedEvent.event.name)
+                eventViewModel.updateSelectedEvent(newlySelectedEvent.event)
+                eventViewModel.updateSelectedEventWithDays(newlySelectedEvent) // FIXME workaround infinite loop
             },
             SelectListStyle(22.sp, 3.sp, FontWeight(400), 50.dp)
         )

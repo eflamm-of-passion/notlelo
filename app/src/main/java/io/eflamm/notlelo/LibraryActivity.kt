@@ -47,16 +47,15 @@ import java.time.Month
 fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
 
     val context = LocalContext.current
-    val event: Event? = eventViewModel.uiState.selectedEvent
     val fullScreenPicture: Picture? = eventViewModel.uiState.selectedPicture
-    val eventWithProducts: EventWithDays? = if(event != null) eventViewModel.eventWithProducts(event.id).observeAsState().value else null
+    val eventWithProducts: EventWithDays? = eventViewModel.uiState.selectedEventWithDays
 
     Column(modifier = Modifier
         .fillMaxSize()
         .background(color = colorResource(id = R.color.white))) {
         HeaderView(
             navController,
-            event?.name ?: "",
+            eventWithProducts?.event?.name ?: "",
             )
         {
             ShareEventButton(context, eventWithProducts, eventViewModel)

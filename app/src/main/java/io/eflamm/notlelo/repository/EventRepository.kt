@@ -15,6 +15,7 @@ class EventRepository(
     private val pictureDao: PictureDao
     ) {
     val allEvents: Flow<List<Event>> = eventDao.getAllEvents()
+    val allEventsWithDays: Flow<List<EventWithDays>> = eventDao.getAllEventsWithDays()
 
     fun eventWithProducts(id: Long): Flow<EventWithDays> {
         return eventDao.getEventWithProducts(id)
