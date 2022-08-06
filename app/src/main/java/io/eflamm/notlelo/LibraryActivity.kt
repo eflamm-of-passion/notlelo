@@ -5,9 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Delete
@@ -15,10 +17,10 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.ArrowForwardIos
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -32,16 +34,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
 import io.eflamm.notlelo.model.*
 import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.NotleloTheme
 import io.eflamm.notlelo.ui.theme.Red
-import io.eflamm.notlelo.ui.theme.White
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.views.HeaderView
-import kotlinx.coroutines.launch
 import java.time.Month
 
 @Composable
@@ -50,8 +49,7 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
     val context = LocalContext.current
     val event: Event? = eventViewModel.uiState.selectedEvent
     val fullScreenPicture: Picture? = eventViewModel.uiState.selectedPicture
-    val eventWithProducts: EventWithDays? =
-        event?.let { eventViewModel.eventWithProducts(it.id).observeAsState().value }
+    val eventWithProducts: EventWithDays? = if(event != null) eventViewModel.eventWithProducts(event.id).observeAsState().value else null
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -75,10 +73,10 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
-    val pagerState = rememberPagerState()
-    val scope = rememberCoroutineScope()
+//    val pagerState = rememberPagerState()
+//    val scope = rememberCoroutineScope()
 
-    HorizontalPager(count = days.size, state = pagerState) { page ->
+    HorizontalPager(count = days.size) { page ->
         val dayWithMeals = days[page]
         val monthAsString = when(dayWithMeals.day.date.month) {
             Month.JANUARY -> stringResource(id = R.string.month_january)
@@ -113,37 +111,70 @@ fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
                     Meals(dayWithMeals.meals, eventViewModel)
                 }
             }
+            // FIXME infinite loop
+//            Row(
+//                Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .fillMaxWidth()
+//                    .padding(bottom = 20.dp), horizontalArrangement = Arrangement.SpaceAround) {
+//                OutlinedButton(
+//                    shape = CircleShape,
+//                    colors = ButtonDefaults.outlinedButtonColors(backgroundColor = if(page > 0) MaterialTheme.colors.primary else LightGrey),
+//                    onClick = { if(page > 0) scope.launch {
+////                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+//                        Log.d("return", "$page")
+//                    } } )  {
+//                    Icon(
+//                        Icons.Filled.ArrowBackIos,
+//                        contentDescription = stringResource(id = R.string.icon_desc_go_back),
+//                        modifier = Modifier
+//                            .width(30.dp)
+//                            .height(40.dp),
+//                        tint = White
+//                    )
+//                }
+//                OutlinedButton(
+//                    shape = CircleShape,
+//                    colors = ButtonDefaults.outlinedButtonColors(backgroundColor = if(page < days.size - 1) MaterialTheme.colors.primary else LightGrey),
+//                    onClick = { if(page < days.size - 1) scope.launch {
+////                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+//                        Log.d("forward", "$page")
+//                    } } ) {
+//                    Icon(
+//                        Icons.Outlined.ArrowForwardIos,
+//                        contentDescription = stringResource(id = R.string.icon_desc_add_event),
+//                        modifier = Modifier
+//                            .width(30.dp)
+//                            .height(40.dp),
+//                        tint = White
+//                    )
+//                }
+//            }
+
+        }
+        Box(Modifier.fillMaxSize()) {
+
             Row(
                 Modifier
-                    .align(Alignment.BottomCenter)
+                    .align(Alignment.Center)
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp), horizontalArrangement = Arrangement.SpaceAround) {
-                OutlinedButton(
-                    shape = CircleShape,
-                    colors = ButtonDefaults.outlinedButtonColors(backgroundColor = if(page > 0) MaterialTheme.colors.primary else LightGrey),
-                    onClick = { if(page > 0) scope.launch { pagerState.scrollToPage(page - 1, 1F) } } )  {
-                    Icon(
-                        Icons.Filled.ArrowBackIos,
-                        contentDescription = stringResource(id = R.string.icon_desc_go_back),
-                        modifier = Modifier
-                            .width(30.dp)
-                            .height(40.dp),
-                        tint = White
-                    )
-                }
-                OutlinedButton(
-                    shape = CircleShape,
-                    colors = ButtonDefaults.outlinedButtonColors(backgroundColor = if(page < days.size - 1) MaterialTheme.colors.primary else LightGrey),
-                    onClick = { if(page < days.size - 1) scope.launch { pagerState.scrollToPage(page + 1, 1F) } } ) {
-                    Icon(
-                        Icons.Outlined.ArrowForwardIos,
-                        contentDescription = stringResource(id = R.string.icon_desc_add_event),
-                        modifier = Modifier
-                            .width(30.dp)
-                            .height(40.dp),
-                        tint = White
-                    )
-                }
+                    .padding(bottom = 20.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Icon(
+                    Icons.Filled.ArrowBackIos,
+                    contentDescription = stringResource(id = R.string.icon_desc_go_back),
+                    modifier = Modifier
+                        .width(30.dp)
+                        .height(40.dp),
+                    tint = if(page > 0) LightGrey else Color.Transparent
+                )
+                Icon(
+                    Icons.Outlined.ArrowForwardIos,
+                    contentDescription = stringResource(id = R.string.icon_desc_add_event),
+                    modifier = Modifier
+                        .width(30.dp)
+                        .height(40.dp),
+                    tint = if(page < days.size - 1) LightGrey else Color.Transparent
+                )
             }
         }
     }
