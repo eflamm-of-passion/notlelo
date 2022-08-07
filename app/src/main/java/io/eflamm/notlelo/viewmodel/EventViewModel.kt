@@ -25,7 +25,6 @@ using FTS (not straightforward solution) : https://stackoverflow.com/questions/4
 
 interface IEventViewModel {
     val uiState: EventUiState
-    fun updateSelectedEvent(event: Event?)
     fun updateSelectedEventWithDays(event: EventWithDays?)
     fun updateSelectedPicture(picture: Picture?)
     val allEvents: LiveData<List<Event>>
@@ -41,19 +40,15 @@ interface IEventViewModel {
 }
 
 data class EventUiState(
-    var selectedEvent : Event?,
     var selectedEventWithDays: EventWithDays?,
     var selectedPicture : Picture?
 )
 
 class EventViewModel(private val eventRepository: EventRepository ): ViewModel(), IEventViewModel {
 
-    override var uiState by mutableStateOf(EventUiState(null, null, null))
+    override var uiState by mutableStateOf(EventUiState(null, null))
         private set
 
-    override fun updateSelectedEvent(event: Event?) {
-            uiState.selectedEvent = event
-    }
     override fun updateSelectedEventWithDays(event: EventWithDays?) {
         uiState.selectedEventWithDays = event
     }
@@ -70,8 +65,8 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
 
     override fun insertEvent(eventToCreate: Event): Job = viewModelScope.launch {
         val eventCreatedId = eventRepository.insertEvent(eventToCreate)
-        val createdEvent = Event(eventCreatedId, eventToCreate)
-        updateSelectedEvent(createdEvent)
+        val createdEventWithDays = EventWithDays(Event(eventCreatedId, eventToCreate), emptyList())
+        updateSelectedEventWithDays(createdEventWithDays)
     }
 
     override fun insertFullProduct(eventId: Long, mealName: String, productName: String, picturePaths: List<String>): Job = viewModelScope.launch {
@@ -148,11 +143,7 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
 
 @Suppress("UNREACHABLE_CODE")
 class MockEventViewModel: ViewModel(), IEventViewModel {
-    override val uiState = EventUiState(null, null, null)
-
-    override fun updateSelectedEvent(event: Event?) {
-        // do nothing
-    }
+    override val uiState = EventUiState(null, null)
 
     override fun updateSelectedEventWithDays(event: EventWithDays?) {
         TODO("Not yet implemented")

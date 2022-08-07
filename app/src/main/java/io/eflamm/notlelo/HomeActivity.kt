@@ -120,20 +120,26 @@ fun HomeView(
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
     val (displayAddEvent, setDisplayAddEvent) = remember { mutableStateOf(false) }
-    var selectedEvent: Event? = eventViewModel.uiState.selectedEvent
-    val events: List<EventWithDays> = eventViewModel.allEventsWithDays.observeAsState().value.let { events ->
-        if(events != null && events.isNotEmpty() && selectedEvent == null) {
-            // TODO choose a favorite event or the last updated event
-            // FIXME seems a bit overkill and sketchy
-            eventViewModel.updateSelectedEvent(events[0].event)
-            eventViewModel.updateSelectedEventWithDays(events[0]) // FIXME workaround infinite loop
-            selectedEvent = events[0].event
-        }
-        events
-    } ?: emptyList()
+    var selectedEvent: EventWithDays? = eventViewModel.uiState.selectedEventWithDays
+    val events: List<EventWithDays> = eventViewModel.allEventsWithDays.observeAsState().value ?: emptyList()
 
-    if(events.isEmpty() && selectedEvent != null) {
-        eventViewModel.updateSelectedEvent(null)
+    if (events.isNotEmpty()) {
+        if (selectedEvent == null) {
+            eventViewModel.updateSelectedEventWithDays(events[0])
+            selectedEvent = events[0]
+        } else {
+            val selectedEventId = selectedEvent.event.id
+            val updatedSelectedEvent = events.first { event -> event.event.id == selectedEventId }
+            if(updatedSelectedEvent == null) {
+                // selected event not found
+                eventViewModel.updateSelectedEventWithDays(events[0])
+                selectedEvent = events[0]
+            } else {
+                eventViewModel.updateSelectedEventWithDays(updatedSelectedEvent)
+                selectedEvent = updatedSelectedEvent
+            }
+        }
+    } else {
         eventViewModel.updateSelectedEventWithDays(null)
     }
 
@@ -182,7 +188,6 @@ fun HomeView(
                 })
                 LinkToPage(Link(stringResource(R.string.home_library), selectedEvent == null, "library") {route -> navController.navigate(route)})
                 LinkToPage(Link(stringResource(R.string.home_settings), false, "settings") {route -> navController.navigate(route)})
-
             }
         }
     }
@@ -198,13 +203,13 @@ fun SelectEvents(
         mutableStateOf(eventViewModel.uiState.selectedEventWithDays?.event?.name ?: events[0].event.name)
     }
 
-    val selectedEventFromUiState: Event? = eventViewModel.uiState.selectedEvent // TODO remove redundant
+    val selectedEventFromUiState: EventWithDays? = eventViewModel.uiState.selectedEventWithDays // TODO remove redundant
     selectedEventFromUiState.let {
         // if an event was selected previously
         // FIXME normally I shouldn't have to check it here, every logic should be handled in the view model
-        val hasEventInList = events.any { e -> e.event.name == it?.name }
+        val hasEventInList = events.any { e -> e.event.name == it?.event!!.name }
         if(hasEventInList) {
-            setSelectedEventName(selectedEventFromUiState?.name!!)
+            setSelectedEventName(selectedEventFromUiState?.event!!.name)
         }
     }
 
@@ -213,7 +218,6 @@ fun SelectEvents(
             onSelect = { index, _ ->
                 val newlySelectedEvent = events[index]
                 setSelectedEventName(newlySelectedEvent.event.name)
-                eventViewModel.updateSelectedEvent(newlySelectedEvent.event)
                 eventViewModel.updateSelectedEventWithDays(newlySelectedEvent) // FIXME workaround infinite loop
             },
             SelectListStyle(22.sp, 3.sp, FontWeight(400), 50.dp)

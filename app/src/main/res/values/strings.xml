@@ -29,9 +29,6 @@
         <item>Déjeuner</item>
         <item>Goûter</item>
         <item>Dîner</item>
-        <item>Cinquième</item>
-        <item>Concours cuisine</item>
-        <item>Pique-nique</item>
         <item>Autre</item>
     </string-array>
     <string name="library_close">Fermer</string>

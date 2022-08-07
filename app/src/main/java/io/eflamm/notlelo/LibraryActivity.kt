@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.ArrowForwardIos
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -32,12 +33,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import io.eflamm.notlelo.model.*
 import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.NotleloTheme
 import io.eflamm.notlelo.ui.theme.Red
+import io.eflamm.notlelo.ui.theme.White
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.views.HeaderView
@@ -48,7 +51,21 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
 
     val context = LocalContext.current
     val fullScreenPicture: Picture? = eventViewModel.uiState.selectedPicture
-    val eventWithProducts: EventWithDays? = eventViewModel.uiState.selectedEventWithDays
+    var eventWithProducts: EventWithDays? = eventViewModel.uiState.selectedEventWithDays
+    val events: List<EventWithDays> = eventViewModel.allEventsWithDays.observeAsState().value ?: emptyList()
+
+    if(eventWithProducts != null) {
+        val selectedEventId = eventWithProducts.event.id
+        val updatedSelectedEvent = events.first { event -> event.event.id == selectedEventId }
+        if(updatedSelectedEvent == null) {
+            // selected event not found
+            eventViewModel.updateSelectedEventWithDays(events[0])
+            eventWithProducts = events[0]
+        } else {
+            eventViewModel.updateSelectedEventWithDays(updatedSelectedEvent)
+            eventWithProducts = updatedSelectedEvent
+        }
+    }
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -72,8 +89,6 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
-//    val pagerState = rememberPagerState()
-//    val scope = rememberCoroutineScope()
 
     HorizontalPager(count = days.size) { page ->
         val dayWithMeals = days[page]
@@ -110,46 +125,6 @@ fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
                     Meals(dayWithMeals.meals, eventViewModel)
                 }
             }
-            // FIXME infinite loop
-//            Row(
-//                Modifier
-//                    .align(Alignment.BottomCenter)
-//                    .fillMaxWidth()
-//                    .padding(bottom = 20.dp), horizontalArrangement = Arrangement.SpaceAround) {
-//                OutlinedButton(
-//                    shape = CircleShape,
-//                    colors = ButtonDefaults.outlinedButtonColors(backgroundColor = if(page > 0) MaterialTheme.colors.primary else LightGrey),
-//                    onClick = { if(page > 0) scope.launch {
-////                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
-//                        Log.d("return", "$page")
-//                    } } )  {
-//                    Icon(
-//                        Icons.Filled.ArrowBackIos,
-//                        contentDescription = stringResource(id = R.string.icon_desc_go_back),
-//                        modifier = Modifier
-//                            .width(30.dp)
-//                            .height(40.dp),
-//                        tint = White
-//                    )
-//                }
-//                OutlinedButton(
-//                    shape = CircleShape,
-//                    colors = ButtonDefaults.outlinedButtonColors(backgroundColor = if(page < days.size - 1) MaterialTheme.colors.primary else LightGrey),
-//                    onClick = { if(page < days.size - 1) scope.launch {
-////                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-//                        Log.d("forward", "$page")
-//                    } } ) {
-//                    Icon(
-//                        Icons.Outlined.ArrowForwardIos,
-//                        contentDescription = stringResource(id = R.string.icon_desc_add_event),
-//                        modifier = Modifier
-//                            .width(30.dp)
-//                            .height(40.dp),
-//                        tint = White
-//                    )
-//                }
-//            }
-
         }
         Box(Modifier.fillMaxSize()) {
 
@@ -201,26 +176,22 @@ fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel) {
 
 @Composable
 fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewModel) {
-    Row {
-        products.forEach { productWithPictures ->
-            Column {
-                Row {
-                    Text(
-                        text = productWithPictures.product.name,
-                        color = MaterialTheme.typography.h6.color,
-                        fontSize = MaterialTheme.typography.h6.fontSize,
-                    )
-                    DeleteProductButton(productWithPictures, eventViewModel)
-                }
-                Pictures(productWithPictures.pictures, eventViewModel)
+    products.forEach { productWithPictures ->
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = CenterVertically) {
+                Text(
+                    text = productWithPictures.product.name,
+                    color = MaterialTheme.typography.h6.color,
+                    fontSize = MaterialTheme.typography.h6.fontSize,
+                )
+                DeleteProductButton(productWithPictures, eventViewModel)
             }
+            Pictures(productWithPictures.pictures, eventViewModel)
         }
-    }
 }
 
 @Composable
 fun Pictures(pictures: List<Picture>, eventViewModel: IEventViewModel) {
-    Row(modifier = Modifier.padding(5.dp), horizontalArrangement = Arrangement.Start) {
+    FlowRow {
         pictures.forEach { picture ->
             TextButton(onClick = {
                 eventViewModel.updateSelectedPicture(picture)
@@ -234,8 +205,7 @@ fun Pictures(pictures: List<Picture>, eventViewModel: IEventViewModel) {
                     placeholder = painterResource(R.drawable.ic_baseline_image),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(125.dp)
-                        .padding(5.dp)
+                        .size(100.dp)
                         .clip(RoundedCornerShape(7.dp))
                 )
             }
@@ -256,7 +226,7 @@ fun ShareEventButton(context: Context, eventToShare: EventWithDays?, eventViewMo
             Icons.Filled.Share,
             contentDescription = stringResource(id = R.string.icon_desc_share_event),
             modifier = Modifier.size(35.dp),
-            tint = colorResource(id = R.color.primary)
+            tint = White
         )
     }
 }

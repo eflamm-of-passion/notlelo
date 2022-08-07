@@ -38,7 +38,9 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import io.eflamm.notlelo.model.Event
+import com.google.accompanist.flowlayout.FlowRow
+import com.google.accompanist.flowlayout.MainAxisAlignment
+import io.eflamm.notlelo.model.EventWithDays
 import io.eflamm.notlelo.ui.theme.Green
 import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.Red
@@ -202,7 +204,7 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
     val (productName, setProductName) = remember { mutableStateOf("") }
     val (mealName, setMealName) = remember { mutableStateOf(preDefinedListOfMeals[0]) }
 
-    val productSuggestions: List<String> = eventViewModel.getProductSuggestions(productName, 5).observeAsState().value ?: emptyList()
+    val productSuggestions: List<String> = eventViewModel.getProductSuggestions(productName, 3).observeAsState().value ?: emptyList()
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -210,7 +212,7 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
         Card(modifier = Modifier
             .align(Alignment.TopCenter)
             .padding(top = 100.dp, start = 20.dp, end = 20.dp)
-            .height(350.dp)
+            .heightIn(min = 350.dp)
             .clip(RoundedCornerShape(7.dp)),
             shape = RoundedCornerShape(7.dp),
         ) {
@@ -232,15 +234,14 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
                         ) }
                     )
                 }
-                Row {
+                FlowRow(mainAxisAlignment = MainAxisAlignment.Center) {
                     productSuggestions.forEach { suggestionName ->
                         if(productName != suggestionName) {
                             TextButton(onClick = {
                                 setProductName(suggestionName)
                             }) {
-                                Text(text = suggestionName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = White,
+                                Text(text = processSuggestionName(suggestionName), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = White, letterSpacing = 0.1.sp,
                                     modifier = Modifier
-                                        .padding(4.dp)
                                         .background(LightGrey, CircleShape)
                                         .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp))
                             }
@@ -286,6 +287,15 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
     }
 }
 
+private fun processSuggestionName(suggestion: String): String {
+    val maxLength = 14
+    var processedSuggestion  = suggestion
+    if(suggestion.length > maxLength) {
+        processedSuggestion = processedSuggestion.substring(0, maxLength).plus("...")
+    }
+    return processedSuggestion
+}
+
 private fun takePhoto(context: Context, imageCapture: ImageCapture, cameraViewModel: ICameraViewModel ) {
     val cacheFolder = context.cacheDir.absolutePath
     val photoFile = File(
@@ -310,8 +320,8 @@ private fun takePhoto(context: Context, imageCapture: ImageCapture, cameraViewMo
 }
 
 private fun saveProduct(appFolder: File, productName: String, mealName: String, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel) {
-    val selectedEvent: Event? = eventViewModel.uiState.selectedEvent
-    if(selectedEvent != null) {
+    val selectedEventWithDays: EventWithDays? = eventViewModel.uiState.selectedEventWithDays
+    if(selectedEventWithDays != null) {
         // TODO probably move this part to the view model layer
         val picturePaths = cameraViewModel.cameraUiState.takenPicturesPath.toList() // toList is needed to create a copy of the list, otherwise the state list is lost in the process
         val savedPicturePaths = picturePaths.map { cachedPicturePath ->
@@ -321,7 +331,7 @@ private fun saveProduct(appFolder: File, productName: String, mealName: String, 
             Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING)
             targetPath.toString()
         }
-        eventViewModel.insertFullProduct(selectedEvent.id, mealName, productName, savedPicturePaths)
+        eventViewModel.insertFullProduct(selectedEventWithDays.event.id, mealName, productName, savedPicturePaths)
         cameraViewModel.removeAllPictures()
     }
 }

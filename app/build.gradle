@@ -127,6 +127,7 @@ dependencies {
 
     implementation "com.google.accompanist:accompanist-permissions:$rootProject.accompanistVersion"
     implementation "com.google.accompanist:accompanist-pager:$rootProject.accompanistVersion"
+    implementation "com.google.accompanist:accompanist-flowlayout:$rootProject.accompanistVersion"
 
     // to display an image from an URI
     implementation("io.coil-kt:coil-compose:$rootProject.coilVersion")
