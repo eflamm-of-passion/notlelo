@@ -6,10 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Delete
@@ -17,6 +14,9 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.ArrowForwardIos
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
@@ -44,16 +45,19 @@ import io.eflamm.notlelo.ui.theme.White
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.views.HeaderView
+import kotlinx.coroutines.CoroutineScope
 import java.time.Month
 
 @Composable
-fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
+fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel){
 
     val context = LocalContext.current
-    val fullScreenPicture: Picture? = eventViewModel.uiState.selectedPicture
+    val libraryState: LibraryState = rememberLibraryState(eventViewModel = eventViewModel)
+    var (selectedPicturePath, setSelectedPicturePath) = remember { mutableStateOf<String?>(null)} // TODO use state holder instead
     var eventWithProducts: EventWithDays? = eventViewModel.uiState.selectedEventWithDays
     val events: List<EventWithDays> = eventViewModel.allEventsWithDays.observeAsState().value ?: emptyList()
 
+    // TODO move all the business logic to the state holder
     if(eventWithProducts != null) {
         val selectedEventId = eventWithProducts.event.id
         val updatedSelectedEvent = events.first { event -> event.event.id == selectedEventId }
@@ -67,8 +71,9 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
         }
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
+    Box(
+        // scaffoldState = libraryState.scaffoldState,
+        modifier = Modifier.fillMaxSize()
         .background(color = colorResource(id = R.color.white))) {
         HeaderView(
             navController,
@@ -78,17 +83,18 @@ fun LibraryView(navController: NavController, eventViewModel: IEventViewModel){
             ShareEventButton(context, eventWithProducts, eventViewModel)
         }
         if (eventWithProducts?.days != null) {
-            Days(eventWithProducts.days, eventViewModel)
+            Days(eventWithProducts.days, eventViewModel, setSelectedPicturePath)
         }
     }
-    if (fullScreenPicture != null)
-        DisplayFullscreenPicture(fullScreenPicture, eventViewModel)
+    if (selectedPicturePath != null) {
+        DisplayFullscreenPicture(selectedPicturePath!!, eventViewModel, setSelectedPicturePath)
+    }
 
 }
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
+fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
 
     HorizontalPager(count = days.size) { page ->
         val dayWithMeals = days[page]
@@ -122,7 +128,7 @@ fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
                             fontSize = MaterialTheme.typography.h3.fontSize
                         )
                     }
-                    Meals(dayWithMeals.meals, eventViewModel)
+                    Meals(dayWithMeals.meals, eventViewModel, setSelectedPicturePath)
                 }
             }
         }
@@ -155,7 +161,7 @@ fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel) {
 }
 
 @Composable
-fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel) {
+fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
     LazyColumn {
         items(meals) { mealWithProducts ->
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -167,7 +173,7 @@ fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel) {
                             fontSize = MaterialTheme.typography.h5.fontSize,
                         )
                     }
-                    Products(mealWithProducts.products, eventViewModel)
+                    Products(mealWithProducts.products, eventViewModel, setSelectedPicturePath)
                 }
             }
         }
@@ -175,7 +181,7 @@ fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel) {
 }
 
 @Composable
-fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewModel) {
+fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
     products.forEach { productWithPictures ->
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = CenterVertically) {
                 Text(
@@ -185,16 +191,16 @@ fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewMode
                 )
                 DeleteProductButton(productWithPictures, eventViewModel)
             }
-            Pictures(productWithPictures.pictures, eventViewModel)
+            Pictures(productWithPictures.pictures, eventViewModel, setSelectedPicturePath)
         }
 }
 
 @Composable
-fun Pictures(pictures: List<Picture>, eventViewModel: IEventViewModel) {
+fun Pictures(pictures: List<Picture>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
     FlowRow {
         pictures.forEach { picture ->
             TextButton(onClick = {
-                eventViewModel.updateSelectedPicture(picture)
+                setSelectedPicturePath(picture.path)
             }) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -246,12 +252,12 @@ fun DeleteProductButton(productWithPictures: ProductWithPictures, eventViewModel
 }
 
 @Composable
-fun DisplayFullscreenPicture(pictureToDisplay: Picture, eventViewModel: IEventViewModel) {
-    TextButton(modifier = Modifier.fillMaxSize(), onClick = { eventViewModel.updateSelectedPicture(null) }) {
+fun DisplayFullscreenPicture(pictureToDisplayPath: String, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String?) -> Unit) {
+    TextButton(modifier = Modifier.fillMaxSize(), onClick = { setSelectedPicturePath(null) }) {
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(pictureToDisplay.path)
+                    .data(pictureToDisplayPath)
                     .crossfade(true)
                     .build(),
                 contentDescription = "",
@@ -271,6 +277,32 @@ fun DisplayFullscreenPicture(pictureToDisplay: Picture, eventViewModel: IEventVi
 fun DefaultPreview() {
     val eventViewModel: IEventViewModel = MockEventViewModel()
     NotleloTheme {
-        LibraryView(rememberNavController(), eventViewModel)
+        LibraryScreen(rememberNavController(), eventViewModel)
     }
+}
+
+class LibraryState(
+    val scaffoldState: ScaffoldState,
+    private val eventViewModel: IEventViewModel,
+    private val coroutineScope: CoroutineScope
+) {
+    var selectedPicturePath: String? = null
+        private set
+
+    fun updateSelectedPicturePath(path: String?) {
+        selectedPicturePath = path
+    }
+}
+
+@Composable
+fun rememberLibraryState(
+    scaffoldState: ScaffoldState = rememberScaffoldState(),
+    eventViewModel: IEventViewModel = viewModel(),
+    coroutineScope: CoroutineScope = rememberCoroutineScope()
+) = remember {
+    LibraryState(
+        scaffoldState,
+        eventViewModel,
+        coroutineScope
+    )
 }

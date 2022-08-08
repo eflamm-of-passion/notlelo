@@ -45,7 +45,7 @@ import io.eflamm.notlelo.views.HeaderView
 import kotlin.math.roundToInt
 
 @Composable
-fun SettingsView(navController: NavController, eventViewModel: IEventViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
+fun SettingsScreen(navController: NavController, eventViewModel: IEventViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
     LazyColumn(
         Modifier
             .fillMaxSize()
@@ -368,6 +368,6 @@ fun PreviewActivity() {
     val eventViewModel: IEventViewModel = MockEventViewModel()
     val userPreferencesViewModel: IUserPreferencesViewModel = MockUserPreferencesViewModel()
     NotleloTheme {
-        SettingsView(rememberNavController(), eventViewModel, userPreferencesViewModel)
+        SettingsScreen(rememberNavController(), eventViewModel, userPreferencesViewModel)
     }
 }

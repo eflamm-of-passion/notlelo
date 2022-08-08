@@ -95,16 +95,16 @@ fun NotleloApp(
 
     NavHost(navController = navController, startDestination = "home") {
         composable(route = "camera"){
-            CameraView(navController, eventViewModel, cameraViewModel, userPreferencesViewModel)
+            CameraScreen(navController, eventViewModel, cameraViewModel, userPreferencesViewModel)
         }
         composable(route = "home"){
-            HomeView( navController,  applicationTitle,  eventViewModel)
+            HomeScreen( navController,  applicationTitle,  eventViewModel)
         }
         composable(route = "library"){
-            LibraryView( navController, eventViewModel)
+            LibraryScreen( navController, eventViewModel)
         }
         composable(route = "settings"){
-            SettingsView( navController, eventViewModel, userPreferencesViewModel)
+            SettingsScreen( navController, eventViewModel, userPreferencesViewModel)
         }
     }
 }
@@ -112,7 +112,7 @@ fun NotleloApp(
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun HomeView(
+fun HomeScreen(
     navController: NavController,
     applicationTitle: String,
     eventViewModel: IEventViewModel
@@ -303,7 +303,7 @@ fun LinkToPage(link: Link) {
 fun PreviewHeader() {
     val eventViewModel: IEventViewModel = MockEventViewModel()
     NotleloTheme {
-        HomeView(rememberNavController(), "notlelo", eventViewModel)
+        HomeScreen(rememberNavController(), "notlelo", eventViewModel)
     }
 }
 

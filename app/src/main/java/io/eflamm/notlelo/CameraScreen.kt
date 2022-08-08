@@ -61,7 +61,7 @@ import java.util.*
 // source : https://developer.android.com/codelabs/camerax-getting-started#0
 
 @Composable
-fun CameraView(navController: NavController, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
+fun CameraScreen(navController: NavController, eventViewModel: IEventViewModel, cameraViewModel: ICameraViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
     val context = LocalContext.current
     val (isDisplayingSaveProductModal, setDisplayingSaveProductModal) = remember { mutableStateOf(false) }
     val resolutionFromUserPreference = userPreferencesViewModel.pictureResolution.observeAsState().value // TODO get the value synchronously probably, or pass it from the home page

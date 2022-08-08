@@ -10,7 +10,6 @@ import androidx.lifecycle.*
 import io.eflamm.notlelo.StorageUtils
 import io.eflamm.notlelo.model.Event
 import io.eflamm.notlelo.model.EventWithDays
-import io.eflamm.notlelo.model.Picture
 import io.eflamm.notlelo.model.Product
 import io.eflamm.notlelo.repository.EventRepository
 import kotlinx.coroutines.Job
@@ -26,7 +25,7 @@ using FTS (not straightforward solution) : https://stackoverflow.com/questions/4
 interface IEventViewModel {
     val uiState: EventUiState
     fun updateSelectedEventWithDays(event: EventWithDays?)
-    fun updateSelectedPicture(picture: Picture?)
+    fun updateSelectedPicture(picturePath: String?)
     val allEvents: LiveData<List<Event>>
     val allEventsWithDays: LiveData<List<EventWithDays>>
     fun eventWithProducts(id: Long): LiveData<EventWithDays>
@@ -41,7 +40,7 @@ interface IEventViewModel {
 
 data class EventUiState(
     var selectedEventWithDays: EventWithDays?,
-    var selectedPicture : Picture?
+    var selectedPicturePath : String?
 )
 
 class EventViewModel(private val eventRepository: EventRepository ): ViewModel(), IEventViewModel {
@@ -52,8 +51,8 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
     override fun updateSelectedEventWithDays(event: EventWithDays?) {
         uiState.selectedEventWithDays = event
     }
-    override fun updateSelectedPicture(picture: Picture?) {
-        uiState.selectedPicture = picture
+    override fun updateSelectedPicture(picturePath: String?) {
+        uiState.selectedPicturePath = picturePath
     }
 
     override val allEvents = eventRepository.allEvents.asLiveData()
@@ -149,7 +148,7 @@ class MockEventViewModel: ViewModel(), IEventViewModel {
         TODO("Not yet implemented")
     }
 
-    override fun updateSelectedPicture(picture: Picture?) {
+    override fun updateSelectedPicture(picturePath: String?) {
         TODO("Not yet implemented")
     }
 
