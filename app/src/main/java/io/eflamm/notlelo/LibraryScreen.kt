@@ -37,6 +37,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
 import io.eflamm.notlelo.model.*
 import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.NotleloTheme
@@ -73,8 +74,9 @@ fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel)
 
     Column(
         // scaffoldState = libraryState.scaffoldState,
-        modifier = Modifier.fillMaxSize()
-        .background(color = colorResource(id = R.color.white))) {
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = colorResource(id = R.color.white))) {
         HeaderView(
             navController,
             eventWithProducts?.event?.name ?: "",
@@ -87,7 +89,7 @@ fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel)
         }
     }
     if (selectedPicturePath != null) {
-        DisplayFullscreenPicture(selectedPicturePath!!, eventViewModel, setSelectedPicturePath)
+        DisplayFullscreenPicture(selectedPicturePath!!, setSelectedPicturePath)
     }
 
 }
@@ -96,7 +98,9 @@ fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel)
 @Composable
 fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
 
-    HorizontalPager(count = days.size) { page ->
+    val pagerState = rememberPagerState(initialPage = days.size - 1)
+
+    HorizontalPager(count = days.size, state = pagerState) { page ->
         val dayWithMeals = days[page]
         val monthAsString = when(dayWithMeals.day.date.month) {
             Month.JANUARY -> stringResource(id = R.string.month_january)
@@ -191,12 +195,12 @@ fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewMode
                 )
                 DeleteProductButton(productWithPictures, eventViewModel)
             }
-            Pictures(productWithPictures.pictures, eventViewModel, setSelectedPicturePath)
+            Pictures(productWithPictures.pictures, setSelectedPicturePath)
         }
 }
 
 @Composable
-fun Pictures(pictures: List<Picture>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
+fun Pictures(pictures: List<Picture>, setSelectedPicturePath: (path: String) -> Unit) {
     FlowRow {
         pictures.forEach { picture ->
             TextButton(onClick = {
@@ -252,9 +256,9 @@ fun DeleteProductButton(productWithPictures: ProductWithPictures, eventViewModel
 }
 
 @Composable
-fun DisplayFullscreenPicture(pictureToDisplayPath: String, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String?) -> Unit) {
-    TextButton(modifier = Modifier.fillMaxSize(), onClick = { setSelectedPicturePath(null) }) {
-        Box(modifier = Modifier.fillMaxSize()) {
+fun DisplayFullscreenPicture(pictureToDisplayPath: String, setSelectedPicturePath: (path: String?) -> Unit) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.Black.copy(alpha = 0.6f)   ) {
+        TextButton(modifier = Modifier.fillMaxSize(), onClick = { setSelectedPicturePath(null) }) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(pictureToDisplayPath)
@@ -262,7 +266,7 @@ fun DisplayFullscreenPicture(pictureToDisplayPath: String, eventViewModel: IEven
                     .build(),
                 contentDescription = "",
                 placeholder = painterResource(R.drawable.ic_baseline_image),
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.FillWidth,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(5.dp)

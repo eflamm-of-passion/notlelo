@@ -113,10 +113,10 @@ fun CameraScreen(navController: NavController, eventViewModel: IEventViewModel, 
 
 private fun mapSizeFromResolution(resolution: Int): Size {
     return when(resolution) {
-        480 -> Size(720, 480)
-        720 -> Size(1280, 720)
-        1080 -> Size(1920, 1080)
-        else -> Size(720, 480)
+        240 -> Size(240,320)
+        480 -> Size(480,640)
+        720 -> Size(720, 1280 )
+        else -> Size(240,320 )
     }
 }
 

@@ -180,19 +180,19 @@ fun CameraSettings(userPreferencesViewModel: IUserPreferencesViewModel) {
 
 private fun mapResolutionToSliderPosition(pictureResolution: Int): Float {
     return when(pictureResolution) {
-        480 -> 0f
-        720 -> 1f
-        1080 -> 2f
+        240 -> 0f
+        480 -> 1f
+        720 -> 2f
         else -> 0f
     }
 }
 
 private fun mapSliderPositionToResolution(sliderPosition: Float): Int {
     return when(sliderPosition.roundToInt().toFloat()) {
-        0f -> 480
-        1f -> 720
-        2f -> 1080
-        else -> 480
+        0f -> 240
+        1f -> 480
+        2f -> 720
+        else -> 240
     }
 }
 

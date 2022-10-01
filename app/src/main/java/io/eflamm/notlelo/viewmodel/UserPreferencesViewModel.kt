@@ -17,10 +17,10 @@ class UserPreferencesViewModel(private val userPreferencesRepository: UserPrefer
 
     override val pictureResolution: LiveData<Int> = userPreferences.map { userPreferences ->
         when(userPreferences.pictureResolution) {
+            240 -> 240
             480 -> 480
             720 -> 720
-            1080 -> 1080
-            else -> 480
+            else -> 240
         }
     }
 
@@ -34,10 +34,10 @@ class MockUserPreferencesViewModel(): ViewModel(), IUserPreferencesViewModel {
 
     override val pictureResolution: LiveData<Int> = userPreferences.map { userPreferences ->
         when(userPreferences.pictureResolution) {
+            240 -> 240
             480 -> 480
             720 -> 720
-            1080 -> 1080
-            else -> 480
+            else -> 240
         }
     }
 
