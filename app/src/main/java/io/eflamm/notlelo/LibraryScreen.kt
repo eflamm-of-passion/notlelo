@@ -71,7 +71,7 @@ fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel)
         }
     }
 
-    Box(
+    Column(
         // scaffoldState = libraryState.scaffoldState,
         modifier = Modifier.fillMaxSize()
         .background(color = colorResource(id = R.color.white))) {

@@ -11,8 +11,8 @@ android {
         applicationId "dev.eflamm.notlelo"
         minSdk 26
         targetSdk 32
-        versionCode 18
-        versionName "2.2"
+        versionCode 20
+        versionName "2.3.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -49,6 +49,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion compose_version
     }
+    namespace 'io.eflamm.notlelo'
     kotlinOptions{
         freeCompilerArgs += [
                 "-Xjvm-default=all",
