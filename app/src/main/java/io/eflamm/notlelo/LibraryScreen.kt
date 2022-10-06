@@ -26,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -166,8 +167,9 @@ fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel, setSelectedP
 
 @Composable
 fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
+    val sortedMeals = sortMeals(meals, stringArrayResource(id = R.array.camera_meals).toList())
     LazyColumn {
-        items(meals) { mealWithProducts ->
+        items(sortedMeals) { mealWithProducts ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 Column {
                     Row {
@@ -182,6 +184,16 @@ fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel, setSel
             }
         }
     }
+}
+
+private fun sortMeals(meals: List<MealWithProducts>, orderedListOfMealNames: List<String>): List<MealWithProducts> {
+    val sortedMeals = mutableListOf<MealWithProducts>()
+    orderedListOfMealNames.forEach { mealName ->
+        val mealsToAdd = meals.filter { meal -> meal.meal.name == mealName }
+        sortedMeals.addAll(mealsToAdd)
+    }
+    sortedMeals.addAll(meals.filter { meal -> !orderedListOfMealNames.contains(meal.meal.name) })
+    return sortedMeals.toList()
 }
 
 @Composable
