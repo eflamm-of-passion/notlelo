@@ -46,6 +46,7 @@ import io.eflamm.notlelo.ui.theme.Red
 import io.eflamm.notlelo.ui.theme.White
 import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
+import io.eflamm.notlelo.views.ConfirmModal
 import io.eflamm.notlelo.views.HeaderView
 import kotlinx.coroutines.CoroutineScope
 import java.time.Month
@@ -56,6 +57,7 @@ fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel)
     val context = LocalContext.current
     val libraryState: LibraryState = rememberLibraryState(eventViewModel = eventViewModel)
     var (selectedPicturePath, setSelectedPicturePath) = remember { mutableStateOf<String?>(null)} // TODO use state holder instead
+    var (productToDelete, setProductToDelete) = remember { mutableStateOf<Product?>(null)} // TODO use state holder instead
     var eventWithProducts: EventWithDays? = eventViewModel.uiState.selectedEventWithDays
     val events: List<EventWithDays> = eventViewModel.allEventsWithDays.observeAsState().value ?: emptyList()
 
@@ -86,18 +88,27 @@ fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel)
             ShareEventButton(context, eventWithProducts, eventViewModel)
         }
         if (eventWithProducts?.days != null) {
-            Days(eventWithProducts.days, eventViewModel, setSelectedPicturePath)
+            Days(eventWithProducts.days, setSelectedPicturePath, setProductToDelete)
         }
     }
     if (selectedPicturePath != null) {
         DisplayFullscreenPicture(selectedPicturePath!!, setSelectedPicturePath)
+    }
+    if (productToDelete != null) {
+        ConfirmModal(title = stringResource(id = R.string.library_confirm_delete_product),
+            confirmAction = {
+                eventViewModel.deleteProduct(productToDelete)
+                setProductToDelete(null)
+            },
+            cancelAction = { setProductToDelete(null) }
+        )
     }
 
 }
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
+fun Days(days: List<DayWithMeals>,  setSelectedPicturePath: (path: String) -> Unit, setProductToDelete: (product: Product) -> Unit) {
 
     val pagerState = rememberPagerState(initialPage = days.size - 1)
 
@@ -133,7 +144,7 @@ fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel, setSelectedP
                             fontSize = MaterialTheme.typography.h3.fontSize
                         )
                     }
-                    Meals(dayWithMeals.meals, eventViewModel, setSelectedPicturePath)
+                    Meals(dayWithMeals.meals, setSelectedPicturePath, setProductToDelete)
                 }
             }
         }
@@ -166,7 +177,7 @@ fun Days(days: List<DayWithMeals>, eventViewModel: IEventViewModel, setSelectedP
 }
 
 @Composable
-fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
+fun Meals(meals: List<MealWithProducts>, setSelectedPicturePath: (path: String) -> Unit, setProductToDelete: (product: Product) -> Unit) {
     val sortedMeals = sortMeals(meals, stringArrayResource(id = R.array.camera_meals).toList())
     LazyColumn {
         items(sortedMeals) { mealWithProducts ->
@@ -179,7 +190,7 @@ fun Meals(meals: List<MealWithProducts>, eventViewModel: IEventViewModel, setSel
                             fontSize = MaterialTheme.typography.h5.fontSize,
                         )
                     }
-                    Products(mealWithProducts.products, eventViewModel, setSelectedPicturePath)
+                    Products(mealWithProducts.products, setSelectedPicturePath, setProductToDelete)
                 }
             }
         }
@@ -197,7 +208,7 @@ private fun sortMeals(meals: List<MealWithProducts>, orderedListOfMealNames: Lis
 }
 
 @Composable
-fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewModel, setSelectedPicturePath: (path: String) -> Unit) {
+fun Products(products: List<ProductWithPictures>, setSelectedPicturePath: (path: String) -> Unit, setProductToDelete: (product: Product) -> Unit) {
     products.forEach { productWithPictures ->
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = CenterVertically) {
                 Text(
@@ -205,7 +216,7 @@ fun Products(products: List<ProductWithPictures>, eventViewModel: IEventViewMode
                     color = MaterialTheme.typography.h6.color,
                     fontSize = MaterialTheme.typography.h6.fontSize,
                 )
-                DeleteProductButton(productWithPictures, eventViewModel)
+                DeleteProductButton(productWithPictures, setProductToDelete)
             }
             Pictures(productWithPictures.pictures, setSelectedPicturePath)
         }
@@ -254,9 +265,9 @@ fun ShareEventButton(context: Context, eventToShare: EventWithDays?, eventViewMo
 }
 
 @Composable
-fun DeleteProductButton(productWithPictures: ProductWithPictures, eventViewModel: IEventViewModel) {
+fun DeleteProductButton(productWithPictures: ProductWithPictures, setProductToDelete: (product: Product) -> Unit) {
     TextButton( onClick = {
-        eventViewModel.deleteProduct(productWithPictures.product)
+        setProductToDelete(productWithPictures.product)
     }) {
         Icon(
             Icons.Filled.Delete,

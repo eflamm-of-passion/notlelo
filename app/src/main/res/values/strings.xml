@@ -47,6 +47,7 @@
     <string name="library_cooking_contest">Concours cuisine</string>
     <string name="library_picnic">Pique-nique</string>
     <string name="library_title">Bibliothèque</string>
+    <string name="library_confirm_delete_product">Voulez-vous vraiment supprimer ce produit ?</string>
     <string name="day_monday">lundi</string>
     <string name="day_tuesday">mardi</string>
     <string name="day_wednesday">mercredi</string>
@@ -71,6 +72,7 @@
     <string name="settings_delete">Supprimer</string>
     <string name="settings_noCamp">Aucun camp créé</string>
     <string name="settings_deleteSuccess">Les camps ont bien été supprimés</string>
+    <string name="library_confirm_delete_events">Voulez-vous vraiment supprimer ces camps ?</string>
     <string name="settings_picture_resolution">Résolution des photos</string>
     <string name="settings_picture_resolution_description">La résolution définie la qualité et la taille des photos prises.</string>
     <string name="settings_picture_resolution_value">Résolution choisie : %1$sp</string>

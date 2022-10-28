@@ -26,6 +26,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -41,11 +42,15 @@ import io.eflamm.notlelo.viewmodel.IEventViewModel
 import io.eflamm.notlelo.viewmodel.IUserPreferencesViewModel
 import io.eflamm.notlelo.viewmodel.MockEventViewModel
 import io.eflamm.notlelo.viewmodel.MockUserPreferencesViewModel
+import io.eflamm.notlelo.views.ConfirmModal
 import io.eflamm.notlelo.views.HeaderView
 import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen(navController: NavController, eventViewModel: IEventViewModel, userPreferencesViewModel: IUserPreferencesViewModel) {
+    var (isConfirmDeleteModalShowing, setIsConfirmDeleteModalShowing) = remember { mutableStateOf(false)}
+    val eventsToDelete = remember { mutableStateListOf<Event>() }
+
     LazyColumn(
         Modifier
             .fillMaxSize()
@@ -53,17 +58,26 @@ fun SettingsScreen(navController: NavController, eventViewModel: IEventViewModel
     ) {
         item {
             HeaderView(navController, stringResource(id = R.string.home_settings))
-            DeleteEvent(eventViewModel)
+            DeleteEvent(eventViewModel, eventsToDelete, setIsConfirmDeleteModalShowing)
             CameraSettings(userPreferencesViewModel)
             FrequentlyAskedQuestions()
             About()
         }
     }
+    if (eventsToDelete.isNotEmpty() && isConfirmDeleteModalShowing) {
+        ConfirmModal(title = stringResource(id = R.string.library_confirm_delete_events),
+            confirmAction = {
+                eventViewModel.deleteEvents(eventsToDelete.toList())
+                eventsToDelete.clear()
+                setIsConfirmDeleteModalShowing(false)
+            },
+            cancelAction = { setIsConfirmDeleteModalShowing(false) }
+        )
+    }
 }
 
 @Composable
-fun DeleteEvent(eventViewModel: IEventViewModel) {
-    val eventsToDelete = remember { mutableStateListOf<Event>() }
+fun DeleteEvent(eventViewModel: IEventViewModel, eventsToDelete: MutableList<Event>, setIsConfirmDeleteModalShowing: (Boolean) -> Unit) {
     val events: List<Event>? = eventViewModel.allEvents.observeAsState().value
 
     Column(
@@ -77,9 +91,10 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
             if(events?.isEmpty() == true) {
                 Text(
                     text = stringResource(id = R.string.settings_noCamp),
+                    textAlign = TextAlign.Center,
                     fontSize = 5.em,
                     color = LightGrey,
-                    modifier = Modifier.wrapContentHeight(),
+                    modifier = Modifier.wrapContentHeight().fillMaxWidth(),
                     style = TextStyle(fontStyle = FontStyle.Italic)
                 )
             }
@@ -119,7 +134,7 @@ fun DeleteEvent(eventViewModel: IEventViewModel) {
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
             Button(onClick = {
-                eventViewModel.deleteEvents(eventsToDelete.toList())
+                setIsConfirmDeleteModalShowing(true)
                 // TODO add a toast to confirm the deletion
                 },
                 colors = if (eventsToDelete.isEmpty())  ButtonDefaults.buttonColors(backgroundColor = LightGrey) else ButtonDefaults.buttonColors(backgroundColor = Red),

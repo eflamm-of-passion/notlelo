@@ -59,7 +59,7 @@ val Typography = Typography(
     h6 = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
-        fontSize = 20.sp,
+        fontSize = 22.sp,
         letterSpacing = 1.sp,
         color = DarkGrey,
     ),
