@@ -96,10 +96,9 @@ class EventViewModel(private val eventRepository: EventRepository ): ViewModel()
         cacheDirectory.deleteRecursively()
     }
 
-    override fun getProductSuggestions(inputString: String, numberOfNames: Int): LiveData<List<String>> {
-        return eventRepository.getProductNameOccurrence(numberOfNames).map { productList ->
-            productList.filter { productName -> productName.contains(inputString) || inputString.isNullOrEmpty() }
-            .take(numberOfNames)
+    override fun getProductSuggestions(nameToSearchFor: String, numberOfNames: Int): LiveData<List<String>> {
+        return eventRepository.getProductNameOccurrence(numberOfNames, nameToSearchFor).map { productList ->
+            productList.filter { productName -> productName.contains(nameToSearchFor) || nameToSearchFor.isNullOrEmpty() }
         }.asLiveData()
     }
 
