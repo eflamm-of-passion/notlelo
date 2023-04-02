@@ -1,17 +1,18 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        compose_version = '1.1.1'
+        compose_version = '1.4.0'
+        kotlin_compose_version = '1.4.4'
     }
-    ext.kotlin_version = '1.7.0'
+    ext.kotlin_version = '1.8.20'
 
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
+        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -23,17 +24,17 @@ ext {
     appCompatVersion = '1.4.2'
     constraintLayoutVersion = '2.1.4'
     coreTestingVersion = '2.1.0'
-    coroutines = '1.6.0'
-    lifecycleVersion = '2.5.0'
+    coroutines = '1.6.4'
+    lifecycleVersion = '2.6.1'
     materialVersion = '1.6.1'
     datastorePreference = '1.0.0'
-    roomVersion = '2.4.2'
+    roomVersion = '2.5.1'
     nav_version = '2.5.0'
-    camerax_version = "1.1.0"
-    camerax_view_version = "1.0.0-alpha32"
+    camerax_version = "1.2.2"
+    camerax_view_version = "1.2.2"
     gsonVersion = "2.9.0"
     coilVersion = "2.0.0-rc01"
-    activityCompose = "1.5.0"
+    activityCompose = "1.7.0"
 
     // testing
     junitVersion = '4.13.2'
@@ -43,8 +44,8 @@ ext {
     mockitoVersion = '4.6.1'
     mockitoKotlinVersion = '4.0.0'
 
-    // ak permission
-    accompanistVersion = '0.24.13-rc'
+    // ask permission
+    accompanistVersion = '0.30.0'
 }
 
 
