@@ -3,6 +3,7 @@ package io.eflamm.notlelo
 import android.content.Context
 import android.util.Log
 import android.util.Size
+import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -206,6 +207,9 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
 
     val productSuggestions: List<String> = eventViewModel.getProductSuggestions(productName, 3).observeAsState().value ?: emptyList()
 
+    val context = LocalContext.current
+    val successMessage = stringResource(id = R.string.camera_product_saved)
+
     Box(modifier = Modifier
         .fillMaxSize()
     ) {
@@ -276,6 +280,8 @@ fun SaveProductModal(setDisplayingSaveProductModal: (Boolean) -> Unit, eventView
                             onClick = {
                                 setDisplayingSaveProductModal(false)
                                 saveProduct(appFolder, productName, mealName, eventViewModel, cameraViewModel)
+                                Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
+
                             }
                         ) {
                             Text(text = stringResource(id = R.string.camera_validate), fontSize = MaterialTheme.typography.button.fontSize, color = MaterialTheme.typography.button.color)

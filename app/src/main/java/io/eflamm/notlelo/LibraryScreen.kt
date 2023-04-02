@@ -1,6 +1,12 @@
 package io.eflamm.notlelo
 
+import android.app.Activity
 import android.content.Context
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,9 +42,8 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.flowlayout.FlowRow
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import io.eflamm.notlelo.model.*
 import io.eflamm.notlelo.ui.theme.LightGrey
 import io.eflamm.notlelo.ui.theme.NotleloTheme
@@ -95,10 +100,13 @@ fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel)
         DisplayFullscreenPicture(selectedPicturePath!!, setSelectedPicturePath)
     }
     if (productToDelete != null) {
+        val context = LocalContext.current
+        val successMessage = stringResource(id = R.string.library_delete_product_success)
         ConfirmModal(title = stringResource(id = R.string.library_confirm_delete_product),
             confirmAction = {
                 eventViewModel.deleteProduct(productToDelete)
                 setProductToDelete(null)
+                Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
             },
             cancelAction = { setProductToDelete(null) }
         )
@@ -106,13 +114,13 @@ fun LibraryScreen(navController: NavController, eventViewModel: IEventViewModel)
 
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Days(days: List<DayWithMeals>,  setSelectedPicturePath: (path: String) -> Unit, setProductToDelete: (product: Product) -> Unit) {
 
     val pagerState = rememberPagerState(initialPage = days.size - 1)
 
-    HorizontalPager(count = days.size, state = pagerState) { page ->
+    HorizontalPager(pageCount = days.size, state = pagerState) { page ->
         val dayWithMeals = days[page]
         val monthAsString = when(dayWithMeals.day.date.month) {
             Month.JANUARY -> stringResource(id = R.string.month_january)
@@ -248,12 +256,14 @@ fun Pictures(pictures: List<Picture>, setSelectedPicturePath: (path: String) -> 
 
 @Composable
 fun ShareEventButton(context: Context, eventToShare: EventWithDays?, eventViewModel: IEventViewModel) {
+
     TextButton( onClick = {
         if (eventToShare != null) {
             val intent = eventViewModel.shareEvent(context, eventToShare)
             context.startActivity(intent)
         }
         // TODO else display toast to indicate the event are not yet loaded
+        // https://stackoverflow.com/questions/67177271/how-to-handle-activity-onactivityresult-with-jetpack-compose
     }) {
         Icon(
             Icons.Filled.Share,

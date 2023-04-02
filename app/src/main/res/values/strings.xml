@@ -48,6 +48,7 @@
     <string name="library_picnic">Pique-nique</string>
     <string name="library_title">Bibliothèque</string>
     <string name="library_confirm_delete_product">Voulez-vous vraiment supprimer ce produit ?</string>
+    <string name="library_delete_product_success">Le produit a bien été supprimé</string>
     <string name="day_monday">lundi</string>
     <string name="day_tuesday">mardi</string>
     <string name="day_wednesday">mercredi</string>

@@ -14,9 +14,9 @@ object StorageUtils {
     // read and write files
 
     fun insertPictureInTemporaryFolder(context: Context, eventName: String, dateAsString: String, mealName: String, productName: String, pictureFileName: String, pictureFile: File): File {
-        // TODO construct some usable file architecture instead of each subfolder
         // TODO use the remaining arguments, or put them in a ordered list which would be cleaner instead of having some much arguments
-        val temporaryFile = createOrGetFileInsideSubFolder(context.cacheDir, eventName, productName, pictureFileName)
+        val subfolderNames = listOf(eventName, dateAsString, mealName, productName)
+        val temporaryFile = createOrGetFileInsideSubFolder(context.cacheDir, eventName, subfolderNames, pictureFileName)
         return Files.copy(Path(pictureFile.path), Path(temporaryFile.path), StandardCopyOption.REPLACE_EXISTING).toFile()
     }
 
@@ -26,12 +26,16 @@ object StorageUtils {
         return File(folder, fileName)
     }
 
-    private fun createOrGetFileInsideSubFolder(destination: File, folderName: String, subFolderName: String, fileName: String): File {
-        val folder = File(destination, folderName)
-        folder.mkdirs()
-        val subFolder = File(folder, subFolderName)
-        subFolder.mkdirs()
-        return File(subFolder, fileName)
+    private fun createOrGetFileInsideSubFolder(destination: File, folderName: String, subFolderNames: List<String>, fileName: String): File {
+        var parentFolder = File(destination, folderName)
+        var childSubFolder= File("emptyFile")
+        parentFolder.mkdirs()
+        for (i in 1..subFolderNames.lastIndex) {
+            childSubFolder = File(parentFolder, subFolderNames[i])
+            childSubFolder.mkdirs()
+            parentFolder = childSubFolder
+        }
+        return File(childSubFolder, fileName)
     }
 
     fun zipFolder(rootDestination: File, outputFolderName: String, outputFileName: String, files: List<File>): File {
